@@ -210,7 +210,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                     log_data = []   # if file is empty
 
             # append the new timestamp to the current logs
-            log_data["logs"][0].append({"ts":log_entry})
+            log_data.append({"ts":log_entry})
 
             # rewrite the file
             with open(liveview_log, "w") as f:
