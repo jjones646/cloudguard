@@ -78,7 +78,7 @@ except:
     ledState = True
  
 # show detailed OpenCV version information
-print "[INFO] OpenCV version:", cv2.getBuildInformation()
+# print "[INFO] OpenCV version:", cv2.getBuildInformation()
 
 # allow the camera to warmup
 if conf["camera_warmup_time"]:
