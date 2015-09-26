@@ -1,6 +1,6 @@
 {    
     "show_video": true,
-    "save_stream": true,
+    "save_local": true,
     "use_dropbox": false,
     "dropbox_key": null,
     "dropbox_secret": null,

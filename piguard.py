@@ -53,16 +53,21 @@ try:
 except:
     pass
 
-print "--  resolution: ", tuple(conf["resolution"])
+print "--  resolution: ", "%dx%x" % tuple(conf["resolution"])
 
 # allow the camera to warmup, then initialize the average frame, last
 # uploaded timestamp, and frame motion counter
 print "[INFO] warming up..."
+print "[INFO] OpenCV version:", cv2.getBuildInformation()
 time.sleep(conf["camera_warmup_time"])
 avg = None
 lastUploaded = datetime.datetime.now()
 motionCounter = 0
 ledState = False
+
+# create a GUI window
+cv2.namedWindow("PiGuard")
+cv2.setWindowProperty("PiGuard", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -75,11 +80,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # grab the raw NumPy array representing the image and initialize
     # the timestamp and occupied/unoccupied text
     frame = f.array
-    # setup for next capture
-    rawCapture.truncate(0)
-
-    if conf["save_stream"]:
-        cv2.imwrite(os.path.join(os.getcwd(), 'live-stream.jpg'), frame)
 
     timestamp = datetime.datetime.now()
     text = "Unoccupied"
@@ -148,6 +148,10 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 					client.put_file(path, open(t.path, "rb"))
 					t.cleanup()
  
+                # see if we should save this locally
+                if conf["save_local"]:
+                    cv2.imwrite(os.path.join(os.getcwd(), 'live-stream.jpg'), frame)
+
 				# update the last uploaded timestamp and reset the motion counter
 				lastUploaded = timestamp
 				motionCounter = 0
@@ -155,11 +159,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	# otherwise, the room is not occupied
 	else:
 		motionCounter = 0
+        # setup for next capture
+        rawCapture.truncate(0)
 
 	# check to see if the frames should be displayed to screen
 	if conf["show_video"]:
 		# display the security feed
-		cv2.imshow("Security Feed", frame)
+		cv2.imshow("PiGuard", frame)
 		key = cv2.waitKey(1) & 0xFF
  
 		# if the `q` key is pressed, break from the lop
