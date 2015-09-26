@@ -202,7 +202,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # give some feedback on the console
             print logc.OK + "[SAVE]" + logc.ENDC, "{}".format(ts), "local save"
             # store the timestamp into a json log file
-            log_entry = {"timestamp": ts}
+            log_entry = {"timestamp": str(ts)}
             with open(liveview_log) as f:
                 log_data = json.load(f)
             log_data.update(log_entry)
