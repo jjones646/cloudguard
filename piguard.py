@@ -12,9 +12,11 @@ from picamera import PiCamera
 
 # set the name for where the liveview file is saved
 liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
+liveview_log = os.path.join(os.getcwd(), 'liveview', 'liveview_log.json')
 
 # create a colors object, enabled by default
 logc = logcolors.LogColors()
+logc.disable()
 
 # remove the previous liveview file it one is there
 try:
