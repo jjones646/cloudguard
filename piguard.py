@@ -151,13 +151,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 client.put_file(path, open(t.path, "rb"))
                 t.cleanup()
 
-            # see if we should save this locally
-            #if conf["save_local"]:
-            cv2.imwrite(liveview_filename, frame)
-
             # update the last uploaded timestamp and reset the motion counter
             lastUploaded = timestamp
             motionCounter = 0
+
+        # see if we should save this locally
+        #if conf["save_local"]:
+        cv2.imwrite(liveview_filename, frame)
  
     # otherwise, the room is not occupied
     else:
