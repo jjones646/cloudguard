@@ -66,17 +66,23 @@ ledState = False
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    camera.led = ledState
-    ledState = not ledState
+    try:
+        camera.led = ledState
+        ledState = not ledState
+    except:
+        pass
 
     # grab the raw NumPy array representing the image and initialize
     # the timestamp and occupied/unoccupied text
     frame = f.array
-    cv2.imwrite(os.path.join(os.getcwd(), 'live-stream.jpg'), frame)
+    # setup for next capture
+    rawCapture.truncate(0)
+
+    if conf["save_stream"]:
+        cv2.imwrite(os.path.join(os.getcwd(), 'live-stream.jpg'), frame)
+
     timestamp = datetime.datetime.now()
     text = "Unoccupied"
-
-    rawCapture.truncate(0)
 
     # resize the frame, convert it to grayscale, and blur it
     frame = imutils.resize(frame, width=500)
