@@ -10,6 +10,7 @@ import cv2
 from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
+import pprint
 
 # set the name for where the liveview file is saved
 liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
@@ -78,7 +79,9 @@ except:
     ledState = True
  
 # show detailed OpenCV version information
-print "[INFO] OpenCV version:", cv2.getBuildInformation()
+build_info = cv2.getBuildInformation()
+pprint.pprint(locals())
+#print "[INFO] OpenCV version:", build_info
 
 # allow the camera to warmup
 if conf["camera_warmup_time"]:
