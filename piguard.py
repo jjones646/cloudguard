@@ -83,6 +83,7 @@ build_info = cv2.getBuildInformation()
 build_info_split = [s.strip() for s in build_info.splitlines()]
 print type(build_info_split)
 pprint.pprint(build_info_split)
+print cv2.__version__
 #print "[INFO] OpenCV version:", build_info
 
 # allow the camera to warmup
