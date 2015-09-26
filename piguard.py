@@ -128,7 +128,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
  
     # if the average frame is None, initialize it
     if avg is None:
-        print logc.WARN + "[WARN]" + logc.ENDC, "Starting background model"
+        print logc.INFO + "[INFO]" + logc.ENDC, "Starting background model"
         avg = gray.copy().astype("float")
         rawCapture.truncate(0)
         continue
