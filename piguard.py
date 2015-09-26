@@ -207,8 +207,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 try:
                     log_data = json.load(f)
                 except ValueError:
-                    log_data = []   # if file is empty
-                    log_data["motion"] = []
+                    log_data = [{"motion":""}]   # if file is empty
 
             # append the new timestamp to the current logs
             log_data["motion"].append({"ts":log_entry})
