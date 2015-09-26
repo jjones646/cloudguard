@@ -157,16 +157,16 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # update the last uploaded timestamp and reset the motion counter
             lastUploaded = timestamp
             motionCounter = 0
-
-        # see if we should save this locally
-        #if conf["save_local"]:
-        cv2.imwrite(liveview_filename, frame)
  
     # otherwise, the room is not occupied
     else:
         motionCounter = 0
         # setup for next capture
         rawCapture.truncate(0)
+
+    # see if we should save this locally
+    #if conf["save_local"]:
+    cv2.imwrite(liveview_filename, frame)
  
     # check to see if the frames should be displayed to screen
     if conf["show_video"]:
