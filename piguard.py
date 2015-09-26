@@ -13,7 +13,7 @@ from picamera import PiCamera
 # set the name for where the liveview file is saved
 liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
 
-# create a colors object
+# create a colors object, enabled by default
 logc = logcolors.LogColors()
 
 # remove the previous liveview file it one is there
@@ -35,7 +35,7 @@ warnings.filterwarnings("ignore")
 try:
     conf = json.load(open(args["conf"]))
 except:
-    print "[FATAL] %s not found...exiting" % args["conf"]
+    print logc.FAIL + "[FATAL]" + logc.ENDC, "%s not found...exiting" % args["conf"]
     sys.exit()
 
 

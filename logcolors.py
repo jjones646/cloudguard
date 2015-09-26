@@ -21,7 +21,3 @@ class LogColors:
         self.ENDC = ''
         self.BOLD = ''
         self.UNDERLINE = ''
-
-# if __name__ == "__main__":
-#     objName = bcolors()
-#     objName.main() 
