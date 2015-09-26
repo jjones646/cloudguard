@@ -2,7 +2,7 @@
 import os
 import sys
 import time
-from datetime import *
+from datetime import datetime
 import json
 import argparse
 import warnings
