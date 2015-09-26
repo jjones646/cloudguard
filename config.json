@@ -11,5 +11,5 @@
     "delta_thresh": 4,
     "resolution": [640, 480],
     "fps": 8,
-    "min_area": 5000
+    "min_area": 4000
 }
