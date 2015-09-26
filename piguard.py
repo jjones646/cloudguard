@@ -128,7 +128,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
  
     # if the average frame is None, initialize it
     if avg is None:
-        print logc.WARN + "[WARN]" + logc.ENDC, "print "[INFO] "Starting background model"
+        print logc.WARN + "[WARN]" + logc.ENDC, "Starting background model"
         avg = gray.copy().astype("float")
         rawCapture.truncate(0)
         continue
@@ -190,7 +190,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
         # see if we should save this locally
         if conf["save_local"]:
-            print logc.OK + "[SAVE]" + logc.ENDC, "frame saved locally"
+            print logc.OK + "[SAVE]" + logc.ENDC, "Frame saved locally"
             cv2.imwrite(liveview_filename, frame)
  
     # otherwise, the room is not occupied
