@@ -176,7 +176,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
     ts_iso = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
-    type(timestamp)
+    print type(timestamp)
     ts_utc = datetime.utcfromtimestamp(float(timestamp))
 
     cv2.putText(frame, "Room Status: {}".format(
