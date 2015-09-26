@@ -13,6 +13,9 @@ from picamera import PiCamera
 # set the name for where the liveview file is saved
 liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
 
+# create a colors object
+logc = bcolors()
+
 # remove the previous liveview file it one is there
 try:
     os.remove(liveview_filename)
