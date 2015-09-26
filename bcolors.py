@@ -1,5 +1,5 @@
 class bcolors:
-	def enable():
+	def enable(self):
 	    self.HEADER = '\033[95m'
 	    self.INFO = '\033[94m'
 	    self.OK = '\033[92m'
@@ -9,7 +9,7 @@ class bcolors:
 	    self.BOLD = '\033[1m'
 	    self.UNDERLINE = '\033[4m'
 
-	def disable():
+	def disable(self):
 		self.HEADER = ''
         self.INFO = ''
         self.OK = ''
@@ -18,4 +18,3 @@ class bcolors:
         self.ENDC = ''
         self.BOLD = ''
         self.UNDERLINE = ''
-        
