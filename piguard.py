@@ -174,7 +174,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     # draw the text and timestamp on the frame
     ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-    ts_utc = datetime.utcnow()
+    ts_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     cv2.putText(frame, "Room Status: {}".format(
         text), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
@@ -213,7 +213,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # save image to the liveview frame
             cv2.imwrite(liveview_filename, frame)
             # give some feedback on the console
-            print logc.INFO + "[SAVE]" + logc.ENDC, "[" + str(ts_utc) + "]", "liveview frame updated"
+            print logc.INFO + "[SAVE]" + logc.ENDC, "[" + str(ts_utc) + "]", "frame updated"
 
         if conf["log_motion"]:
             # store the timestamp into a json log file
