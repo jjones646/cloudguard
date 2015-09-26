@@ -16,7 +16,7 @@ liveview_log = os.path.join(os.getcwd(), 'liveview', 'liveview_log.json')
 
 # create a colors object, enabled by default
 logc = logcolors.LogColors()
-logc.disable()
+# logc.disable()
 
 # remove the previous liveview file it one is there
 try:
@@ -205,7 +205,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             log_entry = str(ts)
             with open(liveview_log) as f:
                 try:
-                    log_data = json.load(f)
+                    log_data = json.loads(f)
                 except ValueError:
                     log_data = []   # if file is empty
 
