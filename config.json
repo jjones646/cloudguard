@@ -6,9 +6,9 @@
     "dropbox_secret": null,
     "dropbox_base_path": null,
     "min_upload_seconds": 3.0,
-    "min_motion_frames": 7,
+    "min_motion_frames": 5,
     "camera_warmup_time": 2,
-    "delta_thresh": 4,
+    "delta_thresh": ,
     "resolution": [640, 480],
     "fps": 8,
     "min_area": 4000
