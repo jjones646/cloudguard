@@ -9,6 +9,7 @@ import imutils
 import json
 import time
 import cv2
+import os
  
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -40,6 +41,7 @@ camera = PiCamera()
 camera.resolution = tuple(conf["resolution"])
 camera.framerate = conf["fps"]
 rawCapture = PiRGBArray(camera, size=camera.resolution)
+# clear out the buffer before its used
 rawCapture.truncate(0)
 
 try:
@@ -70,6 +72,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # grab the raw NumPy array representing the image and initialize
     # the timestamp and occupied/unoccupied text
     frame = f.array
+    cv2.imwrite(os.path.join(os.getcwd(), 'live-stream.jpg'), frame)
     timestamp = datetime.datetime.now()
     text = "Unoccupied"
 
