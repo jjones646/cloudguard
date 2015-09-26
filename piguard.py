@@ -1,7 +1,5 @@
 # import the necessary packages
-import os
-import time
-import datetime
+import os, sys, time, datetime
 import json
 import argparse
 import warnings
@@ -10,7 +8,6 @@ import cv2
 from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-import pprint
 
 # set the name for where the liveview file is saved
 liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
@@ -34,7 +31,9 @@ warnings.filterwarnings("ignore")
 try:
     conf = json.load(open(args["conf"]))
 except:
-    print "[FATAL] %s not found" % args["conf"]
+    print "[FATAL] %s not found...exiting" % args["conf"]
+    sys.exit()
+
 
 # setup the dropbox api if enabled
 client = None
@@ -44,13 +43,13 @@ if conf["use_dropbox"]:
  
     # connect to dropbox and start the session authorization process
     flow = DropboxOAuth2FlowNoRedirect(conf["dropbox_key"], conf["dropbox_secret"])
-    print "[INFO] authorize this application: {}".format(flow.start())
+    print "[INFO] Authorize this application: {}".format(flow.start())
     authCode = raw_input("Enter auth code here: ").strip()
  
     # finish the authorization and grab the Dropbox client
     (accessToken, userID) = flow.finish(authCode)
     client = DropboxClient(accessToken)
-    print "[SUCCESS] dropbox account linked"
+    print "[SUCCESS] Dropbox account linked"
  
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
@@ -60,9 +59,10 @@ camera.framerate = conf["fps"]
 rawCapture = PiRGBArray(camera, size=camera.resolution)
 rawCapture.truncate(0)  # clear out the buffer before its used
 
+# show OpenCV version information
+print "[INFO] OpenCV version:\t%s" % cv2.__version__
 # show what resolution we're using
-print "[INFO] camera resolution:", "%dx%x" % tuple(conf["resolution"])
-print "[INFO] save_local", conf["save_local"]
+print "[INFO] Camera resolution:\t%dx%d" % tuple(conf["resolution"])
 
 # blink the camera's LED to show we're starting up
 try:
@@ -75,11 +75,8 @@ try:
     ledState = False
 except:
     # LED access requires root privileges, so tell how LED access can be enabled if we can't
-    print "[INFO] insufficient privileges for camera LED control. use sudo for access"
+    print "[INFO] Insufficient privileges for camera LED control. use sudo for access"
     ledState = True
- 
-# show OpenCV version information
-print "[INFO] OpenCV version:", cv2.__version__
 
 # allow the camera to warmup
 if conf["camera_warmup_time"]:
@@ -127,7 +124,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
  
     # if the average frame is None, initialize it
     if avg is None:
-        print "[INFO] starting background model..."
+        print "[INFO] Starting background model"
         avg = gray.copy().astype("float")
         rawCapture.truncate(0)
         continue
