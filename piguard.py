@@ -16,6 +16,10 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,
     help="path to the JSON configuration file")
 args = vars(ap.parse_args())
+
+# set the name for where the liveview file is saved and remove it if one is already there
+liveview_filename = os.getcwd(), 'captures', 'liveview.jpg')
+os.remove(liveview_filename)
  
 # filter warnings, load the configuration and initialize the Dropbox client
 warnings.filterwarnings("ignore")
@@ -149,7 +153,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
             # see if we should save this locally
             #if conf["save_local"]:
-            cv2.imwrite(os.path.join(os.getcwd(), 'captures', 'liveview.jpg'), frame)
+            cv2.imwrite(os.path.join(liveview_filename, frame)
 
             # update the last uploaded timestamp and reset the motion counter
             lastUploaded = timestamp
