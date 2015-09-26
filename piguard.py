@@ -74,11 +74,11 @@ try:
     ledState = False
 except:
     # LED access requires root privileges, so tell how LED access can be enabled if we can't
-    print "[INFO] insufficient privileges for camera LED control - run with sudo for LED control"
+    print "[INFO] insufficient privileges for camera LED control. use sudo for access"
     ledState = True
  
 # show detailed OpenCV version information
-# print "[INFO] OpenCV version:", cv2.getBuildInformation()
+print "[INFO] OpenCV version:", cv2.getBuildInformation()
 
 # allow the camera to warmup
 if conf["camera_warmup_time"]:
