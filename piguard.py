@@ -205,7 +205,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             log_entry = str(ts)
             with open(liveview_log) as f:
                 try:
-                    log_data = json.loads(f)
+                    log_data = json.load(f)
                 except ValueError:
                     log_data = []   # if file is empty
 
