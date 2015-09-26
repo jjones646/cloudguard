@@ -190,7 +190,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
         # see if we should save this locally
         if conf["save_local"]:
-            print logc.OK + "[SAVE]" + logc.ENDC, "Frame saved locally"
+            print logc.OK + "[SAVE]" + logc.ENDC, "{}".format(ts), "local save"
             cv2.imwrite(liveview_filename, frame)
  
     # otherwise, the room is not occupied
