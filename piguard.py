@@ -39,11 +39,17 @@ if conf["use_dropbox"]:
 camera = PiCamera()
 camera.resolution = tuple(conf["resolution"])
 camera.framerate = conf["fps"]
-rawCapture = PiRGBArray(camera)#, size=tuple(conf["resolution"]))
+rawCapture = PiRGBArray(camera, size=camera.resolution)
+rawCapture.truncate(0)
 
-camera.led = True
-sleep(0.3)
-camera.led = False
+try:
+    for i in range(10):
+        camera.led = True
+        time.sleep(0.05)
+        camera.led = False
+        time.sleep(0.05)
+except:
+    pass
 
 print "--  resolution: ", tuple(conf["resolution"])
 
@@ -54,15 +60,21 @@ time.sleep(conf["camera_warmup_time"])
 avg = None
 lastUploaded = datetime.datetime.now()
 motionCounter = 0
+ledState = False
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    camera.led = ledState
+    ledState = not ledState
+
     # grab the raw NumPy array representing the image and initialize
     # the timestamp and occupied/unoccupied text
     frame = f.array
     timestamp = datetime.datetime.now()
     text = "Unoccupied"
- 
+
+    rawCapture.truncate(0)
+
     # resize the frame, convert it to grayscale, and blur it
     frame = imutils.resize(frame, width=500)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
