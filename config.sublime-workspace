@@ -4,10 +4,6 @@
 		"selected_items":
 		[
 			[
-				"live",
-				"liveview_filename"
-			],
-			[
 				"cpu_",
 				"cpu_num_complex"
 			],
@@ -223,63 +219,15 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "piguard.py",
-			"settings":
-			{
-				"buffer_size": 6392,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "config.json",
-			"settings":
-			{
-				"buffer_size": 346,
-				"line_ending": "Unix"
-			}
-		}
 	],
-	"build_system": "Packages/Makefile/Make.sublime-build",
+	"build_system": "",
 	"build_system_choices":
 	[
-		[
-			[
-				[
-					"Soccer - Real",
-					""
-				],
-				[
-					"Soccer - Real",
-					"Run"
-				],
-				[
-					"Soccer - Sim",
-					""
-				],
-				[
-					"Soccer - Sim",
-					"Run"
-				],
-				[
-					"Packages/Makefile/Make.sublime-build",
-					""
-				],
-				[
-					"Packages/Makefile/Make.sublime-build",
-					"Clean"
-				]
-			],
-			[
-				"Packages/Makefile/Make.sublime-build",
-				""
-			]
-		]
 	],
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 75.0,
+		"height": 96.0,
 		"last_filter": "install",
 		"selected_items":
 		[
@@ -304,7 +252,7 @@
 				"Preferences: Browse Packages"
 			]
 		],
-		"width": 449.0
+		"width": 575.0
 	},
 	"console":
 	{
@@ -323,18 +271,24 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
-	"expanded_folders":
-	[
-		"/home/jonathan/Documents/piguard",
-		"/home/jonathan/Documents/piguard/imgsearch"
-	],
 	"file_history":
 	[
+		"/home/jonathan/Documents/web-panel/web_panel/static/public/js/refresh.js",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/layout.html",
+		"/home/jonathan/Documents/web-panel/web_panel/static/public/css/.gitkeep",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/footer.html",
 		"/home/jonathan/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
-		"/home/jonathan/Documents/piguard/test.py",
-		"/home/jonathan/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
-		"/home/jonathan/Documents/piguard/config.json",
-		"/home/jonathan/Documents/piguard/run-app",
+		"/home/jonathan/.config/sublime-text-3/Packages/SublimeAStyleFormatter/Default (Linux).sublime-keymap",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/500.html",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/404.html",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/401.html",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/public/register.html",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/public/about.html",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/public/home.html",
+		"/home/jonathan/Documents/web-panel/web_panel/templates/nav.html",
+		"/home/jonathan/.config/sublime-text-3/Packages/HTML-CSS-JS Prettify/.jsbeautifyrc",
+		"/home/jonathan/.config/sublime-text-3/Packages/HTML-CSS-JS Prettify/Default (Linux).sublime-keymap",
+		"/home/jonathan/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
 		"/home/jonathan/Desktop/stream",
 		"/home/jonathan/Documents/school/ECE 6122/projects/FourierTransform2D/fft2d.cc",
 		"/home/jonathan/Documents/school/ECE 6122/projects/FourierTransform2D/plot-vals.py",
@@ -414,6 +368,7 @@
 		"/home/jonathan/Documents/robocup-software/robocup.sublime-project",
 		"/home/jonathan/.config/sublime-text-3/Packages/SublimeLinter/SublimeLinter.sublime-settings",
 		"/home/jonathan/.config/sublime-text-3/Packages/SublimeLinter/Default (Linux).sublime-keymap",
+		"/home/jonathan/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
 		"/home/jonathan/.config/sublime-text-3/Packages/Default/Default (Linux).sublime-keymap",
 		"/home/jonathan/.config/sublime-text-3/Packages/User/JSON.sublime-settings",
 		"/home/jonathan/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
@@ -445,23 +400,11 @@
 		"/home/jonathan/Documents/robocup-software/firmware/robot2015/src-ctrl/drivers/mpu-6050/mpu-6050.cpp",
 		"/home/jonathan/Documents/robocup-software/firmware/robot2015/hw-test/i2c-test.cpp",
 		"/home/jonathan/Documents/robocup-software/firmware/robot2015/src-ctrl/drivers/mpu-6050/mpu-6050.hpp",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/src-ctrl/modules/ConsoleTaskThread.cpp",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/targets/hal/TARGET_NXP/TARGET_LPC176X/i2c_api.c",
-		"/media/jonathan/MBED/fpg-test.bin",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/common/us_ticker_api.c",
-		"/home/jonathan/Documents/robocup-software/firmware/common2015/drivers/timer-api/timer-api.cpp",
-		"/home/jonathan/Documents/robocup-software/firmware/common2015/drivers/timer-api/timer-api.hpp",
-		"/home/jonathan/Downloads/MCR_R2015a_glnxa64_installer/install",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/targets/hal/TARGET_Silicon_Labs/TARGET_EFM32/pinmap_function.h",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/build/mbed/pinmap.h",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/hal/pinmap.h",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/targets/hal/TARGET_ARM_SSG/TARGET_MPS2/i2c_api.c",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/docs/COMMITTERS.md",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/src-ctrl/drivers/timer/timer_001.h"
+		"/home/jonathan/Documents/robocup-software/firmware/robot2015/src-ctrl/modules/ConsoleTaskThread.cpp"
 	],
 	"find":
 	{
-		"height": 35.0
+		"height": 26.0
 	},
 	"find_in_files":
 	{
@@ -485,10 +428,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"image",
-			"tab",
-			"truncate",
-			"motionCounter",
+			"ASSET_URL",
 			"inverse",
 			"start",
 			"save",
@@ -612,7 +552,10 @@
 			"\\[",
 			"IP_TIMER_",
 			"STATIC INLINE",
-			"IP_TIMER_001_T"
+			"IP_TIMER_001_T",
+			"thre",
+			"scl",
+			"prog_b"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -666,75 +609,14 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "piguard.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 6392,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								251,
-								251
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "config.json",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 346,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								346,
-								346
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 26.0
 	},
 	"input":
 	{
@@ -763,23 +645,15 @@
 		]
 	},
 	"menu_visible": true,
-	"output.astyle_error_message":
-	{
-		"height": 0.0
-	},
-	"output.exec":
-	{
-		"height": 142.0
-	},
 	"output.find_results":
 	{
 		"height": 0.0
 	},
 	"pinned_build_system": "",
-	"project": "piguard.sublime-project",
+	"project": "config.sublime-project",
 	"replace":
 	{
-		"height": 64.0
+		"height": 48.0
 	},
 	"save_all_on_build": true,
 	"select_file":
