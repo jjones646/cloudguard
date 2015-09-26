@@ -7,8 +7,8 @@
     "dropbox_base_path": null,
     "min_upload_seconds": 3.0,
     "min_motion_frames": 7,
-    "camera_warmup_time": 2.5,
-    "delta_thresh": 5,
+    "camera_warmup_time": 2,
+    "delta_thresh": 4,
     "resolution": [640, 480],
     "fps": 8,
     "min_area": 5000
