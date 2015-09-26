@@ -1,4 +1,14 @@
 class bcolors:
+	def __init__(self):
+		self.HEADER = ''
+        self.INFO = ''
+        self.OK = ''
+        self.WARN = ''
+        self.FAIL = ''
+        self.ENDC = ''
+        self.BOLD = ''
+        self.UNDERLINE = ''
+
 	def enable(self):
 	    self.HEADER = '\033[95m'
 	    self.INFO = '\033[94m'
