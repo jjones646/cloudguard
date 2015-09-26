@@ -18,7 +18,7 @@ ap.add_argument("-c", "--conf", required=True,
 args = vars(ap.parse_args())
 
 # set the name for where the liveview file is saved and remove it if one is already there
-liveview_filename = os.path.join(os.getcwd(), 'captures', 'liveview.jpg')
+liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
 try:
     os.remove(liveview_filename)
 except OSError:
