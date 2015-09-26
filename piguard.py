@@ -23,6 +23,11 @@ try:
     os.remove(liveview_filename)
 except OSError:
     pass
+
+# check for existence of the log file
+if not os.path.isfile(liveview_log):
+    # create file if there isn't a previous one
+    open(liveview_log, "a+").close()
  
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
