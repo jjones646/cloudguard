@@ -135,25 +135,25 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 			# check to see if the number of frames with consistent motion is
 			# high enough
 			if motionCounter >= conf["min_motion_frames"]:
-				# check to see if dropbox sohuld be used
-				if conf["use_dropbox"]:
-					# write the image to temporary file
-					t = TempImage()
-					cv2.imwrite(t.path, frame)
- 
-					# upload the image to Dropbox and cleanup the tempory image
-					print "[UPLOAD] {}".format(ts)
-					path = "{base_path}/{timestamp}.jpg".format(base_path=conf["dropbox_base_path"], timestamp=ts)
-					client.put_file(path, open(t.path, "rb"))
-					t.cleanup()
- 
+                # check to see if dropbox sohuld be used
+                if conf["use_dropbox"]:
+                	# write the image to temporary file
+                	t = TempImage()
+                	cv2.imwrite(t.path, frame)
+
+                	# upload the image to Dropbox and cleanup the tempory image
+                	print "[UPLOAD] {}".format(ts)
+                	path = "{base_path}/{timestamp}.jpg".format(base_path=conf["dropbox_base_path"], timestamp=ts)
+                	client.put_file(path, open(t.path, "rb"))
+                	t.cleanup()
+
                 # see if we should save this locally
                 if conf["save_local"]:
                     cv2.imwrite(os.path.join(os.getcwd(), 'live-stream.jpg'), frame)
 
-				# update the last uploaded timestamp and reset the motion counter
-				lastUploaded = timestamp
-				motionCounter = 0
+                # update the last uploaded timestamp and reset the motion counter
+                lastUploaded = timestamp
+                motionCounter = 0
  
 	# otherwise, the room is not occupied
 	else:
