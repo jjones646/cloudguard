@@ -208,9 +208,10 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                     log_data = json.load(f)
                 except ValueError:
                     log_data = []   # if file is empty
+                    log_data["motion"] = []
 
             # append the new timestamp to the current logs
-            log_data.append({"ts":log_entry})
+            log_data["motion"].append({"ts":log_entry})
 
             # rewrite the file
             with open(liveview_log, "w") as f:
