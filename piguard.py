@@ -19,7 +19,10 @@ args = vars(ap.parse_args())
 
 # set the name for where the liveview file is saved and remove it if one is already there
 liveview_filename = os.path.join(os.getcwd(), 'captures', 'liveview.jpg')
-os.remove(liveview_filename)
+try:
+    os.remove(liveview_filename)
+except OSError:
+    pass
  
 # filter warnings, load the configuration and initialize the Dropbox client
 warnings.filterwarnings("ignore")
