@@ -5,7 +5,7 @@ import argparse
 import warnings
 import imutils
 import cv2
-import bcolors
+import bcolors as bcol
 from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
@@ -14,7 +14,7 @@ from picamera import PiCamera
 liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
 
 # create a colors object
-logc = bcolors()
+logc = bcol.bcolors()
 
 # remove the previous liveview file it one is there
 try:
