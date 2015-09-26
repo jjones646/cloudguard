@@ -166,11 +166,11 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	if conf["show_video"]:
 		# display the security feed
 		cv2.imshow("PiGuard", frame)
-		key = cv2.waitKey(1) & 0xFF
+		# key = cv2.waitKey(1) & 0xFF
  
-		# if the `q` key is pressed, break from the lop
-		if key == ord("q"):
-			break
+		# # if the `q` key is pressed, break from the lop
+		# if key == ord("q"):
+		# 	break
  
 	# clear the stream in preparation for the next frame
 	rawCapture.truncate(0)
