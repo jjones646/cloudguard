@@ -67,7 +67,7 @@ ledState = False
  
 # create a GUI window
 cv2.namedWindow("PiGuard")
-cv2.setWindowProperty("PiGuard", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+cv2.setWindowProperty("PiGuard", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
  
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
