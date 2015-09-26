@@ -1,6 +1,6 @@
 {    
     "show_video": true,
-    "save_stream": true,
+    "save_stream": false,
     "use_dropbox": false,
     "dropbox_key": null,
     "dropbox_secret": null,
@@ -10,6 +10,6 @@
     "camera_warmup_time": 2.5,
     "delta_thresh": 5,
     "resolution": [640, 480],
-    "fps": 8,
+    "fps": 2,
     "min_area": 5000
 }
