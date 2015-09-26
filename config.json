@@ -10,6 +10,6 @@
     "camera_warmup_time": 2,
     "delta_thresh": 5,
     "resolution": [640, 480],
-    "fps": 8,
+    "fps": 5,
     "min_area": 4000
 }
