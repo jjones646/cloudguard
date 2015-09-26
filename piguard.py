@@ -148,8 +148,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 t.cleanup()
 
             # see if we should save this locally
-            if conf["save_local"]:
-                cv2.imwrite(os.path.join(os.getcwd(), 'captures', 'liveview.jpg'), frame)
+            #if conf["save_local"]:
+            cv2.imwrite(os.path.join(os.getcwd(), 'captures', 'liveview.jpg'), frame)
 
             # update the last uploaded timestamp and reset the motion counter
             lastUploaded = timestamp
