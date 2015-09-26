@@ -2,7 +2,7 @@
 import os
 import sys
 import time
-import datetime
+import datetime as datetime
 import json
 import argparse
 import warnings
@@ -109,7 +109,7 @@ avg = None
 motionCounter = 0
 
 # initialize framve timestamp
-lastUploaded = datetime.datetime.now()
+lastUploaded = datetime.now()
 
 # create a GUI window if enabled
 if conf["show_video"]:
@@ -131,7 +131,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     frame = f.array
 
     # update the timestamp
-    timestamp = datetime.datetime.now()
+    timestamp = datetime.now()
     text = "Unoccupied"
 
     # resize the frame, convert it to grayscale, and blur it
