@@ -53,7 +53,7 @@ if conf["use_dropbox"]:
     # finish the authorization and grab the Dropbox client
     (accessToken, userID) = flow.finish(authCode)
     client = DropboxClient(accessToken)
-    print "[SUCCESS] Dropbox account linked"
+    print logc.OK + "[SUCCESS]" + logc.ENDC, "Dropbox account linked"
  
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
@@ -79,7 +79,7 @@ try:
     ledState = False
 except:
     # LED access requires root privileges, so tell how LED access can be enabled if we can't
-    print "\033[93m[WARN]\033[0m Insufficient privileges for camera LED control. use sudo for access"
+    print logc.WARN + "[WARN]" + logc.ENDC, "Insufficient privileges for camera LED control. use sudo for access"
     ledState = True
 
 # allow the camera to warmup
@@ -128,7 +128,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
  
     # if the average frame is None, initialize it
     if avg is None:
-        print "[INFO] Starting background model"
+        print logc.WARN + "[WARN]" + logc.ENDC, "print "[INFO] "Starting background model"
         avg = gray.copy().astype("float")
         rawCapture.truncate(0)
         continue
@@ -179,7 +179,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 cv2.imwrite(t.path, frame)
 
                 # upload the image to Dropbox and cleanup the tempory image
-                print "[UPLOAD] {}".format(ts)
+                print loc.OK + "[UPLOAD]" + loc.ENDC, "{}".format(ts)
                 path = "{base_path}/{timestamp}.jpg".format(base_path=conf["dropbox_base_path"], timestamp=ts)
                 client.put_file(path, open(t.path, "rb"))
                 t.cleanup()
@@ -189,8 +189,9 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             motionCounter = 0
 
         # see if we should save this locally
-        #if conf["save_local"]:
-        cv2.imwrite(liveview_filename, frame)
+        if conf["save_local"]:
+            print logc.OK + "[SAVE]" + logc.ENDC, "frame saved locally"
+            cv2.imwrite(liveview_filename, frame)
  
     # otherwise, the room is not occupied
     else:
