@@ -175,9 +175,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # draw the text and timestamp on the frame
     ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
     ts_iso = timestamp.strftime('%Y-%m-%d %H:%M:%S')
-
-    print type(timestamp)
-    ts_utc = datetime.utcfromtimestamp(float(timestamp))
+    ts_utc = datetime.utcnow()
 
     cv2.putText(frame, "Room Status: {}".format(
         text), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
