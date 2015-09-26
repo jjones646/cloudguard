@@ -227,7 +227,7 @@
 			"file": "piguard.py",
 			"settings":
 			{
-				"buffer_size": 6392,
+				"buffer_size": 6391,
 				"line_ending": "Unix"
 			}
 		},
@@ -235,7 +235,7 @@
 			"file": "config.json",
 			"settings":
 			{
-				"buffer_size": 346,
+				"buffer_size": 345,
 				"line_ending": "Unix"
 			}
 		}
@@ -666,7 +666,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -675,15 +675,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6392,
+						"buffer_size": 6391,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								251,
-								251
+								5734,
+								5734
 							]
 						],
 						"settings":
@@ -693,10 +693,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2214.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -705,15 +705,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 346,
+						"buffer_size": 345,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								346,
-								346
+								253,
+								253
 							]
 						],
 						"settings":
@@ -726,7 +726,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]

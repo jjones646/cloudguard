@@ -1,15 +1,24 @@
 # import the necessary packages
+import os
+import time
+import datetime
+import json
+import argparse
+import warnings
+import imutils
+import cv2
 from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-import argparse
-import warnings
-import datetime
-import imutils
-import json
-import time
-import cv2
-import os
+
+# set the name for where the liveview file is saved
+liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
+
+# remove the previous liveview file it one is there
+try:
+    os.remove(liveview_filename)
+except OSError:
+    pass
  
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -17,25 +26,24 @@ ap.add_argument("-c", "--conf", required=True,
     help="path to the JSON configuration file")
 args = vars(ap.parse_args())
 
-# set the name for where the liveview file is saved and remove it if one is already there
-liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
-try:
-    os.remove(liveview_filename)
-except OSError:
-    pass
- 
 # filter warnings, load the configuration and initialize the Dropbox client
 warnings.filterwarnings("ignore")
-conf = json.load(open(args["conf"]))
+
+# load the configuration file, fail if it can't be found
+try:
+    conf = json.load(open(args["conf"]))
+except:
+    print "[FATAL] %s not found" % args["conf"]
+
+# setup the dropbox api if enabled
 client = None
- 
 if conf["use_dropbox"]:
     from dropbox.client import DropboxOAuth2FlowNoRedirect
     from dropbox.client import DropboxClient
  
     # connect to dropbox and start the session authorization process
     flow = DropboxOAuth2FlowNoRedirect(conf["dropbox_key"], conf["dropbox_secret"])
-    print "[INFO] Authorize this application: {}".format(flow.start())
+    print "[INFO] authorize this application: {}".format(flow.start())
     authCode = raw_input("Enter auth code here: ").strip()
  
     # finish the authorization and grab the Dropbox client
@@ -46,38 +54,57 @@ if conf["use_dropbox"]:
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
 camera.resolution = tuple(conf["resolution"])
-camera.framerate = conf["fps"]
+camera.framerate = conf["fps"] 
+
 rawCapture = PiRGBArray(camera, size=camera.resolution)
-# clear out the buffer before its used
-rawCapture.truncate(0)
- 
+rawCapture.truncate(0)  # clear out the buffer before its used
+
+# show what resolution we're using
+print "[INFO] camera resolution:", "%dx%x" % tuple(conf["resolution"])
+print "[INFO] save_local", conf["save_local"]
+
+# blink the camera's LED to show we're starting up
 try:
+    # quickly strobe the LED
     for i in range(10):
         camera.led = True
         time.sleep(0.05)
         camera.led = False
         time.sleep(0.05)
+    ledState = False
 except:
-    pass
+    # LED access requires root privileges, so tell how LED access can be enabled if we can't
+    print "[INFO] insufficient privileges for camera LED control - run with sudo for LED control"
+    ledState = True
  
-print "--  resolution: ", "%dx%x" % tuple(conf["resolution"])
- 
-# allow the camera to warmup, then initialize the average frame, last
-# uploaded timestamp, and frame motion counter
-print "[INFO] warming up..."
+# show detailed OpenCV version information
 print "[INFO] OpenCV version:", cv2.getBuildInformation()
-time.sleep(conf["camera_warmup_time"])
+
+# allow the camera to warmup
+if conf["camera_warmup_time"]:
+    # if this is in the config file, use that value
+    time.sleep(conf["camera_warmup_time"])
+else:
+    # default to 3 seconds if not found in config file
+    time.sleep(3)
+
+# initialize the average frame
 avg = None
-lastUploaded = datetime.datetime.now()
+
+# initialize the motion detected counter
 motionCounter = 0
-ledState = False
+
+# initialize framve timestamp
+lastUploaded = datetime.datetime.now()
  
-# create a GUI window
-cv2.namedWindow("PiGuard")
-cv2.setWindowProperty("PiGuard", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
+# create a GUI window if enabled
+if conf["show_video"]:
+    cv2.namedWindow("PiGuard")
+    cv2.setWindowProperty("PiGuard", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
  
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    # toggle the LED through every frame iteration
     try:
         camera.led = ledState
         ledState = not ledState
@@ -88,6 +115,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # the timestamp and occupied/unoccupied text
     frame = f.array
  
+    # update the timestamp
     timestamp = datetime.datetime.now()
     text = "Unoccupied"
  
