@@ -192,8 +192,17 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
         # see if we should save this locally
         if conf["save_local"]:
-            print logc.OK + "[SAVE]" + logc.ENDC, "{}".format(ts), "local save"
+            # save image to the liveview frame
             cv2.imwrite(liveview_filename, frame)
+            # give some feedback on the console
+            print logc.OK + "[SAVE]" + logc.ENDC, "{}".format(ts), "local save"
+            # store the timestamp into a json log file
+            log_entry = {"timestamp": ts}
+            with open(liveview_log) as f:
+                log_data = json.load(f)
+            log_data.update(log_entry)
+            with open(liveview_log, "w") as f:
+                json.dump(log_data, f)
  
     # otherwise, the room is not occupied
     else:
