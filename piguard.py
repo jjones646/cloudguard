@@ -62,7 +62,7 @@ rawCapture.truncate(0)  # clear out the buffer before its used
 # show OpenCV version information
 print "[INFO] OpenCV version:\t%s" % cv2.__version__
 # show what resolution we're using
-print "[INFO] Camera resolution:\t%dx%d" % tuple(conf["resolution"])
+print "[INFO] Camera res.:\t%dx%d" % tuple(conf["resolution"])
 
 # blink the camera's LED to show we're starting up
 try:
@@ -75,7 +75,7 @@ try:
     ledState = False
 except:
     # LED access requires root privileges, so tell how LED access can be enabled if we can't
-    print "[INFO] Insufficient privileges for camera LED control. use sudo for access"
+    print "\033[93m[WARN]\033[0m Insufficient privileges for camera LED control. use sudo for access"
     ledState = True
 
 # allow the camera to warmup
