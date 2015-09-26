@@ -1,13 +1,6 @@
 class LogColors:
     def __init__(self):
-        self.HEADER = ''
-        self.INFO = ''
-        self.OK = ''
-        self.WARN = ''
-        self.FAIL = ''
-        self.ENDC = ''
-        self.BOLD = ''
-        self.UNDERLINE = ''
+        self.enable()
 
     def enable(self):
         self.HEADER = '\033[95m'
