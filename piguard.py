@@ -5,6 +5,7 @@ import argparse
 import warnings
 import imutils
 import cv2
+import bcolors
 from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
@@ -60,9 +61,9 @@ rawCapture = PiRGBArray(camera, size=camera.resolution)
 rawCapture.truncate(0)  # clear out the buffer before its used
 
 # show OpenCV version information
-print "[INFO] OpenCV version:\t%s" % cv2.__version__
+print bcolors.INFO + "[INFO]" + bcolors.ENDC, "OpenCV version:\t%s" % cv2.__version__
 # show what resolution we're using
-print "[INFO] Camera res.:\t%dx%d" % tuple(conf["resolution"])
+print bcolors.INFO + "[INFO]" + bcolors.ENDC, "Camera res.:\t%dx%d" % tuple(conf["resolution"])
 
 # blink the camera's LED to show we're starting up
 try:
