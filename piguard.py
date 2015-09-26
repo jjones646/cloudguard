@@ -174,6 +174,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     # draw the text and timestamp on the frame
     ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
+    ts_iso = timestamp.strftime('%Y-%m-%d %H:%M:%S')
     cv2.putText(frame, "Room Status: {}".format(
         text), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
     cv2.putText(frame, ts, (10, frame.shape[
@@ -211,13 +212,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # save image to the liveview frame
             cv2.imwrite(liveview_filename, frame)
             # give some feedback on the console
-            print logc.OK + "[SAVE]" + logc.ENDC, "{}".format(ts), "liveview frame updated"
+            print logc.INFO + "[SAVE]" + logc.ENDC, ts_iso, "liveview frame updated"
 
         if conf["log_motion"]:
             # store the timestamp into a json log file
             log_entry = {}
             log_entry["motion_count"] = motionCounter
-            log_entry["ts"] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            log_entry["ts"] = ts_iso
 
             with open(liveview_log) as f:
                 try:
@@ -234,7 +235,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 json.dump(log_data, f)
 
             # give some feedback on the console
-            print logc.OK + "[LOG]" + logc.ENDC, "log entry added", log_entry["ts"]
+            print logc.INFO + "[LOG]" + logc.ENDC, log_entry["ts"], "log entry added", 
 
     # otherwise, the room is not occupied
     else:
