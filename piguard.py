@@ -80,6 +80,7 @@ except:
  
 # show detailed OpenCV version information
 build_info = cv2.getBuildInformation()
+print type(build_info)
 pprint.pprint(locals())
 #print "[INFO] OpenCV version:", build_info
 
