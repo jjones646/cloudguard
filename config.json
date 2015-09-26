@@ -1,6 +1,7 @@
 {    
     "show_video": false,
     "save_local": true,
+    "log_motion": true,
     "use_dropbox": false,
     "dropbox_key": null,
     "dropbox_secret": null,
