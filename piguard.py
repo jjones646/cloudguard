@@ -143,8 +143,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
  
 					# upload the image to Dropbox and cleanup the tempory image
 					print "[UPLOAD] {}".format(ts)
-					path = "{base_path}/{timestamp}.jpg".format(
-						base_path=conf["dropbox_base_path"], timestamp=ts)
+					path = "{base_path}/{timestamp}.jpg".format(base_path=conf["dropbox_base_path"], timestamp=ts)
 					client.put_file(path, open(t.path, "rb"))
 					t.cleanup()
  
