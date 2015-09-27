@@ -139,7 +139,7 @@ if conf["show_video"]:
         "PiGuard", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 motionLevel = 0
-motionLevel_last = 0
+motionLevel_log = 0
 avg_delta_ts = timedelta(0)
 # moving average array is the length of our number of triggering frames
 # for uploads
