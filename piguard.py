@@ -291,15 +291,16 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
             # delta_ts = current_ts - last_motion_ts
             #delta_ts = current_ts - last_motion_ts_logged
-            print "motion delta:", motion_ts_delta
+            # print "motion delta:", motion_ts_delta
 
             # append to front and pop from back
             moving_average_array.append(motion_ts_delta)
             moving_average_array.pop(0)
 
-            print moving_average_array
+            # print moving_average_array
 
-            avg_delta_ts = sum(moving_average_array, timedelta(0)) / len(moving_average_array)
+            avg_delta_ts = sum(
+                moving_average_array, timedelta(0)) / len(moving_average_array)
 
             print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts
             # give some feedback on the console
@@ -332,7 +333,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     else:
         # check to see if the running average has fallen to a level indicating
         # that previous movements are no longer in the reference frame
-        if (last_motion_ts_logged - datetime.utcnow()).seconds > (5 * avg_delta_ts):
+        if (last_motion_ts_logged - datetime.utcnow()) > (5 * avg_delta_ts):
 
             # write a zero entry motion level to the logs
             if (motionLevel_last != 0.0) and (motionLevel == 0.0):
