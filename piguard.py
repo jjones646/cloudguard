@@ -126,7 +126,7 @@ avg = None
 motionCounter = 0
 
 # initialize framve timestamp
-lastUploaded = datetime.now()
+last_upload_ts = datetime.utcnow()
 
 # create a GUI window if enabled
 if conf["show_video"]:
@@ -154,7 +154,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     frame = f.array
 
     # update the timestamps
-    timestamp = datetime.now()
+    timestamp = datetime.utcnow()
     ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
     ts_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
@@ -235,7 +235,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # check to see if the room is occupied
     if motion_detected:
         # check to see if enough time has passed between uploads
-        if (timestamp - lastUploaded).seconds >= conf["min_upload_seconds"]:
+        if (timestamp - last_upload_ts).seconds >= conf["min_upload_seconds"]:
             # increment the motion counter
             motionCounter += 1
 
@@ -243,7 +243,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # threshold
         if motionCounter >= conf["min_motion_frames"]:
             # update the last uploaded timestamp
-            lastUploaded = timestamp
+            last_upload_ts = timestamp
 
             # reset the motion counter
             motionLevel = motionLevel + motionCounter
@@ -309,7 +309,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     else:
         # check to see if the running average has fallen to a level indicating
         # that previous movements are no longer in the reference frame
-        if (lastUploaded - datetime.now()) > (10 * avg_delta_ts):
+        if (last_upload_ts - datetime.utcnow()).seconds() > (10 * avg_delta_ts):
             # write a zero entry motion level to the logs
             if (motionLevel_last != 0.0) and (motionLevel == 0.0):
                 log_entry = {}
@@ -323,7 +323,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
                 print logc.INFO + "[OK]" + logc.OK, "[" + str(ts_utc) + "]", "no motion detected"
 
-    moving_average_array.append(ts_utc - ts_utc_last)
+    moving_average_array.append((ts_utc - ts_utc_last).seconds())
     moving_average_array.pop()
     avg_delta_ts = movingAverage(moving_average_array)
 
