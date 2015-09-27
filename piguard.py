@@ -199,7 +199,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     #                      3, cv2.LINE_AA, hierarchy, abs(levels))
     #     cv2.imshow('PiGuard Contours', vis)
     #
-    if isinstance(hierarchy):
+    if hierarchy.size:
         motionLevel = ceil(sqrt(motionLevel)) + len(cnts)
     else:
         motionLevel = motionLevel - 1
