@@ -290,7 +290,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             motionLevel_log_last = motionLevel_log
 
             # delta_ts = current_ts - last_motion_ts
-            delta_ts = int(motion_ts_delta.seconds)
+            delta_ts = float(motion_ts_delta.seconds)
 
             # append to front and pop from back
             moving_average_array.append(delta_ts)
