@@ -126,7 +126,9 @@ avg = None
 motionCounter = 0
 
 # initialize framve timestamp
-last_upload_ts = datetime.utcnow()
+current_ts = datetime.utcnow()
+last_motion_ts = current_ts
+last_upload_ts = current_ts
 
 # create a GUI window if enabled
 if conf["show_video"]:
@@ -154,9 +156,9 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     frame = f.array
 
     # update the timestamps
-    timestamp = datetime.utcnow()
-    ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-    ts_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    current_ts = datetime.utcnow()
+    ts_utc = current_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    ts_pretty = current_ts.strftime("%A %d %B %Y %I:%M:%S%p")
 
     # we start out assuming there is no motion in the image
     # the following will only update the detection state if this
@@ -224,7 +226,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     )
     cv2.putText(
         frame,
-        ts,
+        ts_pretty,
         (10, frame.shape[0] - 10),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.35,
@@ -234,6 +236,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     # check to see if the room is occupied
     if motion_detected:
+        last_motion_ts = current_ts
         # check to see if enough time has passed between uploads
         if (timestamp - last_upload_ts).seconds >= conf["min_upload_seconds"]:
             # increment the motion counter
@@ -243,7 +246,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # threshold
         if motionCounter >= conf["min_motion_frames"]:
             # update the last uploaded timestamp
-            last_upload_ts = timestamp
+            last_upload_ts = current_ts
 
             # reset the motion counter
             motionLevel = motionLevel + motionCounter
@@ -278,7 +281,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             write_log(liveview_log, log_entry)
 
             motionLevel_last = motionLevel
-            ts_utc_last = ts_utc
             # give some feedback on the console
             print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
@@ -323,7 +325,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
                 print logc.INFO + "[OK]" + logc.OK, "[" + str(ts_utc) + "]", "no motion detected"
 
-    moving_average_array.append((ts_utc - ts_utc_last).seconds())
+    moving_average_array.append((current_ts - last_motion_ts).seconds())
     moving_average_array.pop()
     avg_delta_ts = movingAverage(moving_average_array)
 
