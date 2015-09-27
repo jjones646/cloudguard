@@ -107,7 +107,7 @@ try:
 except:
     # LED access requires root privileges, so tell how LED access can be
     # enabled if we can't
-    print logc.WARN + "[WARN]" + logc.ENDC, "Insufficient privileges for camera LED control. use sudo for access"
+    print logc.WARN + "[WARN]" + logc.ENDC, "Insufficient privileges for camera LED control, use sudo for access"
     ledState = True
 
 # allow the camera to warmup

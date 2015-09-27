@@ -49,7 +49,7 @@ def write_log(filename, log_entry):
                 # json structure & move the current file
                 # just to be safe
                 log_data = {"motion": []}
-                print logc.WARN + "[WARN]" + logc.ENDC, "moving", "could not detect valid json schema in", filename, ", archiving file"
+                print logc.WARN + "[WARN]" + logc.ENDC, "could not detect valid json schema in", filename, ", archiving file"
                 needArchive = True
 
         if needArchive:
