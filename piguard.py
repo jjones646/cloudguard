@@ -37,7 +37,8 @@ if os.path.isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
     print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
     os.rename(liveview_log,
-              join(liveview_dir, str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S_") + basename(liveview_log))
+              join(liveview_dir, str(
+                  datetime.now().strftime("%Y-%m-%d_%H:%M:%S_") + basename(liveview_log)))
 
 # create this session's logfile
 open(liveview_log, "a+").close()
