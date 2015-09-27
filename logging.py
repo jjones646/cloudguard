@@ -8,7 +8,7 @@ import logcolors
 logc = logcolors.LogColors()
 
 logSchema = {
-    "type": "object"
+    "type": "object",
     "properties": {
         "motion": {
             "properties": {
