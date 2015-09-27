@@ -133,6 +133,8 @@ if conf["show_video"]:
     cv2.setWindowProperty(
         "PiGuard", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
+motionLevel = 0
+
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # toggle the LED through every frame iteration
@@ -185,8 +187,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # if conf["show_contours"]:
-    #     # vis = PiRGBArray(camera, size=camera.resolution)
-    #     # vis = vis.array()
+    # vis = PiRGBArray(camera, size=camera.resolution)
+    # vis = vis.array()
     #     vis = np.zeros((conf["resolution"][0], conf["resolution"][1], 3), np.uint8)
     #     vis = imutils.resize(vis, width=500)
     #     np.trunc(vis)
@@ -195,17 +197,24 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     #     cv2.drawContours(vis, contours, (-1, 3)[levels <= 0], (128, 255, 255),
     #                      3, cv2.LINE_AA, hierarchy, abs(levels))
     #     cv2.imshow('PiGuard Contours', vis)
+    #
+    if cnts:
+        motionLevel = motionLevel + size(cnts)
+    else:
+        motionLevel = motionLevel - 1
+        if motionLevel < 0:
+            motionLevel = 0
 
     # loop over the contours
     for c in cnts:
-        motion_detected=True
-        text="Occupied"
+        motion_detected = True
+        text = "Occupied"
         # if the contour is too small, ignore it
         if cv2.contourArea(c) < conf["min_area"]:
             continue
 
         # compute the bounding box for the contour, draw it on the frame
-        (x, y, w, h)=cv2.boundingRect(c)
+        (x, y, w, h) = cv2.boundingRect(c)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     # write the timestamp & room state over the image
@@ -239,10 +248,11 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # threshold
         if motionCounter >= conf["min_motion_frames"]:
             # update the last uploaded timestamp
-            lastUploaded=timestamp
+            lastUploaded = timestamp
 
             # reset the motion counter
-            motionCounter=0
+            motionLevel = motionLevel + motionCounter
+            motionCounter = 0
 
             # see if we should save this locally
             if conf["save_local"]:
@@ -254,21 +264,21 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # check to see if dropbox sohuld be used
             if conf["use_dropbox"]:
                 # write the image to temporary file
-                t=TempImage()
+                t = TempImage()
                 cv2.imwrite(t.path, frame)
 
                 # upload the image to Dropbox and cleanup the tempory image
                 print loc.OK + "[UPLOAD]" + loc.ENDC, "{}".format(ts)
-                path="{base_path}/{timestamp}.jpg".format(
-                    base_path = conf["dropbox_base_path"], timestamp = ts)
+                path = "{base_path}/{timestamp}.jpg".format(
+                    base_path=conf["dropbox_base_path"], timestamp=ts)
                 client.put_file(path, open(t.path, "rb"))
                 t.cleanup()
 
         if conf["log_motion"]:
             # store the timestamp into a json log file
-            log_entry={}
-            log_entry["motion_count"]=motionCounter
-            log_entry["ts"]=str(ts_utc)
+            log_entry = {}
+            log_entry["motion_count"] = motionCounter
+            log_entry["ts"] = str(ts_utc)
             write_log(liveview_log, log_entry)
 
             # give some feedback on the console
@@ -276,18 +286,18 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     # otherwise, the room is not occupied
     else:
-        motionCounter=0
+        motionCounter = 0
         # setup for next capture
         rawCapture.truncate(0)
 
     # check to see if the frames should be displayed to screen
     if conf["show_video"]:
         cv2.imshow("PiGuard", frame)
-        key=cv2.waitKey(1) & 0xFF
+        key = cv2.waitKey(1) & 0xFF
 
     if conf["liveview_en"]:
         # save image to the liveview frame
-        liveview_tmp=splitext(liveview_filename)[0] + "_tmp.jpg"
+        liveview_tmp = splitext(liveview_filename)[0] + "_tmp.jpg"
         cv2.imwrite(liveview_tmp, frame)
 
         # switch the name with the last stored frame
