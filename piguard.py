@@ -238,7 +238,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     if motion_detected:
         last_motion_ts = current_ts
         # check to see if enough time has passed between uploads
-        if (timestamp - last_upload_ts).seconds >= conf["min_upload_seconds"]:
+        if (current_ts - last_upload_ts).seconds >= conf["min_upload_seconds"]:
             # increment the motion counter
             motionCounter += 1
 
