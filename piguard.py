@@ -142,7 +142,7 @@ motionLevel = 0
 motionLevel_last = 0
 # moving average array is the length of our number of triggering frames
 # for uploads
-moving_average_array = [None for i in range(int(conf["min_motion_frames"]))]
+moving_average_array = [timedelta() for i in range(int(conf["min_motion_frames"]))]
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
