@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+from os.path import basename, join
 from datetime import datetime
 import json
 import argparse
@@ -14,12 +15,10 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 # set the name for where the liveview file is saved
-liveview_dir = os.path.join(os.getcwd(), 'liveview')
-liveview_filename = os.path.join(liveview_dir, 'liveview.jpg')
-liveview_motion_filename = os.path.join(liveview_dir, 'liveview_motion.jpg')
-liveview_log = os.path.join(liveview_dir, 'liveview_log.json')
-print liveview_log
-print os.path.splitext(liveview_log)[0]
+liveview_dir = join(os.getcwd(), 'liveview')
+liveview_filename = join(liveview_dir, 'liveview.jpg')
+liveview_motion_filename = join(liveview_dir, 'liveview_motion.jpg')
+liveview_log = join(liveview_dir, 'liveview_log.json')
 
 # create a colors object, enabled by default
 logc = logcolors.LogColors()
@@ -37,51 +36,51 @@ if os.path.isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
     print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
     os.rename(liveview_log,
-              os.path.join(liveview_dir, os.path.splitext(liveview_log)[0] + str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.json'))
+              join(liveview_dir, str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S_") + basename(liveview_log))
 
 # create this session's logfile
 open(liveview_log, "a+").close()
 
 # construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
+ap=argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,
                 help="path to the JSON configuration file")
-args = vars(ap.parse_args())
+args=vars(ap.parse_args())
 
 # filter warnings, load the configuration and initialize the Dropbox client
 warnings.filterwarnings("ignore")
 
 # load the configuration file, fail if it can't be found
 try:
-    conf = json.load(open(args["conf"]))
+    conf=json.load(open(args["conf"]))
 except:
     print logc.FAIL + "[FATAL]" + logc.ENDC, "%s not found...exiting" % args["conf"]
     sys.exit()
 
 
 # setup the dropbox api if enabled
-client = None
+client=None
 if conf["use_dropbox"]:
     from dropbox.client import DropboxOAuth2FlowNoRedirect
     from dropbox.client import DropboxClient
 
     # connect to dropbox and start the session authorization process
-    flow = DropboxOAuth2FlowNoRedirect(
+    flow=DropboxOAuth2FlowNoRedirect(
         conf["dropbox_key"], conf["dropbox_secret"])
     print logc.INFO + "[INFO]" + logc.ENDC, "Authorize this application: {}".format(flow.start())
-    authCode = raw_input("Enter auth code here: ").strip()
+    authCode=raw_input("Enter auth code here: ").strip()
 
     # finish the authorization and grab the Dropbox client
-    (accessToken, userID) = flow.finish(authCode)
-    client = DropboxClient(accessToken)
+    (accessToken, userID)=flow.finish(authCode)
+    client=DropboxClient(accessToken)
     print logc.OK + "[SUCCESS]" + logc.ENDC, "Dropbox account linked"
 
 # initialize the camera and grab a reference to the raw camera capture
-camera = PiCamera()
-camera.resolution = tuple(conf["resolution"])
-camera.framerate = conf["fps"]
+camera=PiCamera()
+camera.resolution=tuple(conf["resolution"])
+camera.framerate=conf["fps"]
 
-rawCapture = PiRGBArray(camera, size=camera.resolution)
+rawCapture=PiRGBArray(camera, size=camera.resolution)
 rawCapture.truncate(0)  # clear out the buffer before its used
 
 # show OpenCV version information
@@ -93,16 +92,16 @@ print logc.INFO + "[INFO]" + logc.ENDC, "Camera res.:\t%dx%d" % tuple(conf["reso
 try:
     # quickly strobe the LED
     for i in range(10):
-        camera.led = True
+        camera.led=True
         time.sleep(0.05)
-        camera.led = False
+        camera.led=False
         time.sleep(0.05)
-    ledState = False
+    ledState=False
 except:
     # LED access requires root privileges, so tell how LED access can be
     # enabled if we can't
     print logc.WARN + "[WARN]" + logc.ENDC, "Insufficient privileges for camera LED control. use sudo for access"
-    ledState = True
+    ledState=True
 
 # allow the camera to warmup
 if conf["camera_warmup_time"]:
@@ -113,13 +112,13 @@ else:
     time.sleep(3)
 
 # initialize the average frame
-avg = None
+avg=None
 
 # initialize the motion detected counter
-motionCounter = 0
+motionCounter=0
 
 # initialize framve timestamp
-lastUploaded = datetime.now()
+lastUploaded=datetime.now()
 
 # create a GUI window if enabled
 if conf["show_video"]:
@@ -131,35 +130,35 @@ if conf["show_video"]:
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # toggle the LED through every frame iteration
     try:
-        camera.led = ledState
-        ledState = not ledState
+        camera.led=ledState
+        ledState=not ledState
     except:
         pass
 
     # grab the raw NumPy array representing the image and initialize
     # the timestamp and occupied/unoccupied text
-    frame = f.array
+    frame=f.array
 
     # update the timestamps
-    timestamp = datetime.now()
-    ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-    ts_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    timestamp=datetime.now()
+    ts=timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
+    ts_utc=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     # we start out assuming there is no motion in the image
     # the following will only update the detection state if this
     # assumption can be proved wrong
-    motion_detected = False
-    text = "Unoccupied"
+    motion_detected=False
+    text="Unoccupied"
 
     # resize the frame, convert it to grayscale, and blur it
-    frame = imutils.resize(frame, width=500)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)
+    frame=imutils.resize(frame, width=500)
+    gray=cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray=cv2.GaussianBlur(gray, (21, 21), 0)
 
     # if the average frame is None, initialize it
     if avg is None:
         print logc.INFO + "[INFO]" + logc.ENDC, "Starting background model"
-        avg = gray.copy().astype("float")
+        avg=gray.copy().astype("float")
         rawCapture.truncate(0)
         continue
 
@@ -167,26 +166,26 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # previous frames, then compute the difference between the current
     # frame and running average
     cv2.accumulateWeighted(gray, avg, 0.5)
-    frameDelta = cv2.absdiff(gray, cv2.convertScaleAbs(avg))
+    frameDelta=cv2.absdiff(gray, cv2.convertScaleAbs(avg))
 
     # threshold the delta image, dilate the thresholded image to fill
     # in holes, then find contours on thresholded image
-    thresh = cv2.threshold(
+    thresh=cv2.threshold(
         frameDelta, conf["delta_thresh"], 255, cv2.THRESH_BINARY)[1]
-    thresh = cv2.dilate(thresh, None, iterations=2)
-    (_, cnts, _) = cv2.findContours(
+    thresh=cv2.dilate(thresh, None, iterations=2)
+    (_, cnts, _)=cv2.findContours(
         thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # loop over the contours
     for c in cnts:
-        motion_detected = True
-        text = "Occupied"
+        motion_detected=True
+        text="Occupied"
         # if the contour is too small, ignore it
         if cv2.contourArea(c) < conf["min_area"]:
             continue
 
         # compute the bounding box for the contour, draw it on the frame
-        (x, y, w, h) = cv2.boundingRect(c)
+        (x, y, w, h)=cv2.boundingRect(c)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     # write the timestamp & room state over the image
@@ -229,34 +228,34 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # check to see if dropbox sohuld be used
             if conf["use_dropbox"]:
                 # write the image to temporary file
-                t = TempImage()
+                t=TempImage()
                 cv2.imwrite(t.path, frame)
 
                 # upload the image to Dropbox and cleanup the tempory image
                 print loc.OK + "[UPLOAD]" + loc.ENDC, "{}".format(ts)
-                path = "{base_path}/{timestamp}.jpg".format(
+                path="{base_path}/{timestamp}.jpg".format(
                     base_path=conf["dropbox_base_path"], timestamp=ts)
                 client.put_file(path, open(t.path, "rb"))
                 t.cleanup()
 
             # update the last uploaded timestamp and reset the motion counter
-            lastUploaded = timestamp
-            motionCounter = 0
+            lastUploaded=timestamp
+            motionCounter=0
 
         if conf["log_motion"]:
             # store the timestamp into a json log file
-            log_entry = {}
-            log_entry["motion_count"] = motionCounter
-            log_entry["ts"] = str(ts_utc)
+            log_entry={}
+            log_entry["motion_count"]=motionCounter
+            log_entry["ts"]=str(ts_utc)
 
             with open(liveview_log) as f:
                 try:
-                    log_data = json.load(f)
+                    log_data=json.load(f)
                 except ValueError:
                     # if file is empty, initialize the
                     # json structure & move the current file
                     # just to be safe
-                    log_data = {"motion": []}
+                    log_data={"motion": []}
 
             # append the new timestamp to the current logs
             log_data["motion"].append(log_entry)
@@ -270,18 +269,18 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     # otherwise, the room is not occupied
     else:
-        motionCounter = 0
+        motionCounter=0
         # setup for next capture
         rawCapture.truncate(0)
 
     # check to see if the frames should be displayed to screen
     if conf["show_video"]:
         cv2.imshow("PiGuard", frame)
-        key = cv2.waitKey(1) & 0xFF
+        key=cv2.waitKey(1) & 0xFF
 
     if conf["liveview_en"]:
         # save image to the liveview frame
-        liveview_tmp = os.path.splitext(liveview_filename)[0] + "_tmp.jpg"
+        liveview_tmp=os.path.splitext(liveview_filename)[0] + "_tmp.jpg"
         cv2.imwrite(liveview_tmp, frame)
 
         # switch the name with the last stored frame
