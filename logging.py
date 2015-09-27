@@ -9,7 +9,7 @@ logc = logcolors.LogColors()
 
 def archive(filename):
     pre_move = abspath(filename)
-    post_move = abspath(join(pre_move, str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S_")) + basename(filename)))
+    post_move = abspath(join(dirname(pre_move), str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S_")) + basename(filename)))
     try:
         os.rename(pre_move, post_move)
     except:
