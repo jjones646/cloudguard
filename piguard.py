@@ -187,9 +187,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     _, cnts, hierarchy = cv2.findContours(
         thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    print logc.INFO + "[INFO]" + logc.ENDC, "Contours:", len(cnts)
-    print logc.INFO + "[INFO]" + logc.ENDC, "Hierarchy:", len(hierarchy)
-
     # if conf["show_contours"]:
     # vis = PiRGBArray(camera, size=camera.resolution)
     # vis = vis.array()
@@ -202,7 +199,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     #                      3, cv2.LINE_AA, hierarchy, abs(levels))
     #     cv2.imshow('PiGuard Contours', vis)
     #
-    if cnts:
+    if hierarchy:
         motionLevel = ceil(sqrt(motionLevel)) + len(cnts)
     else:
         motionLevel = motionLevel - 1
