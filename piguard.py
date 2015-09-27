@@ -10,6 +10,7 @@ import warnings
 import imutils
 import cv2
 import logcolors
+import logging
 from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
@@ -19,7 +20,6 @@ liveview_dir = join(os.getcwd(), 'liveview')
 liveview_filename = join(liveview_dir, 'liveview.jpg')
 liveview_motion_filename = join(liveview_dir, 'liveview_motion.jpg')
 liveview_log = join(liveview_dir, 'liveview_log.json')
-print liveview_log
 
 # create a colors object, enabled by default
 logc = logcolors.LogColors()
@@ -36,8 +36,6 @@ except OSError:
 if os.path.isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
     print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
-    os.rename(liveview_log,
-              join(liveview_dir, str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S_")) + basename(liveview_log)))
 
 # create this session's logfile
 open(liveview_log, "a+").close()
@@ -281,7 +279,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     if conf["liveview_en"]:
         # save image to the liveview frame
-        liveview_tmp = os.path.splitext(liveview_filename)[0] + "_tmp.jpg"
+        liveview_tmp = splitext(liveview_filename)[0] + "_tmp.jpg"
         cv2.imwrite(liveview_tmp, frame)
 
         # switch the name with the last stored frame
