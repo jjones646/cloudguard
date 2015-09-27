@@ -298,7 +298,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
             avg_delta_ts = sum(moving_average_array, timedelta(0))
 
-            print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-5]
+            print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts.microseconds
             # give some feedback on the console
             print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
