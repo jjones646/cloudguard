@@ -184,17 +184,17 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     _, cnts, hierarchy = cv2.findContours(
         thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    if conf["show_contours"]:
-        # vis = PiRGBArray(camera, size=camera.resolution)
-        # vis = vis.array()
-        vis = np.zeros((conf["resolution"][0], conf["resolution"][1], 3), np.uint8)
-        vis = imutils.resize(vis, width=500)
-        np.trunc(vis)
-        levels=0
-        contours=[cv2.approxPolyDP(c, 3, True) for c in cnts]
-        cv2.drawContours(vis, contours, (-1, 3)[levels <= 0], (128, 255, 255),
-                         3, cv2.LINE_AA, hierarchy, abs(levels))
-        cv2.imshow('PiGuard Contours', vis)
+    # if conf["show_contours"]:
+    #     # vis = PiRGBArray(camera, size=camera.resolution)
+    #     # vis = vis.array()
+    #     vis = np.zeros((conf["resolution"][0], conf["resolution"][1], 3), np.uint8)
+    #     vis = imutils.resize(vis, width=500)
+    #     np.trunc(vis)
+    #     levels=0
+    #     contours=[cv2.approxPolyDP(c, 3, True) for c in cnts]
+    #     cv2.drawContours(vis, contours, (-1, 3)[levels <= 0], (128, 255, 255),
+    #                      3, cv2.LINE_AA, hierarchy, abs(levels))
+    #     cv2.imshow('PiGuard Contours', vis)
 
     # loop over the contours
     for c in cnts:
