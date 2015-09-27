@@ -331,22 +331,22 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # solution at the moment
             os.remove(liveview_filename)
             os.rename(liveview_tmp, liveview_filename)
-    else:
-        # check to see if the running average has fallen to a level indicating
-        # that previous movements are no longer in the reference frame
-        if (datetime.utcnow() - last_motion_ts_logged) > (30 * avg_delta_ts):
 
-            # write a zero entry motion level to the logs
-            if (motionLevel_log != 0.0):
-                log_entry = {}
-                log_entry["motion_count"] = motionLevel
-                log_entry["ts"] = str(ts_utc)
+    # check to see if the running average has fallen to a level indicating
+    # that previous movements are no longer in the reference frame
+    if (datetime.utcnow() - last_motion_ts_logged) > (30 * avg_delta_ts):
+        print logc.FAIL + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "NO MOTION DETECTED"
+        # write a zero entry motion level to the logs
+        if (motionLevel_log != 0.0):
+            log_entry = {}
+            log_entry["motion_count"] = motionLevel
+            log_entry["ts"] = str(ts_utc)
 
-                write_log(liveview_log, log_entry)
+            write_log(liveview_log, log_entry)
 
-                motionLevel_log = motionLevel
+            motionLevel_log = motionLevel
 
-            print logc.FAIL + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "NO MOTION DETECTED"
+            
 
     print "delta:", (datetime.utcnow() - last_motion_ts_logged)
     print "motion delta:", (30 * avg_delta_ts)
