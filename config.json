@@ -1,6 +1,7 @@
 {    
     "show_video": true,
     "save_local": true,
+    "liveview_en": true,
     "log_motion": true,
     "use_dropbox": false,
     "dropbox_key": null,

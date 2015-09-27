@@ -15,6 +15,7 @@ from picamera import PiCamera
 
 # set the name for where the liveview file is saved
 liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
+liveview_motion_filename = os.path.join(os.getcwd(), 'liveview', 'liveview_motion.jpg')
 liveview_log = os.path.join(os.getcwd(), 'liveview', 'liveview_log.json')
 
 # create a colors object, enabled by default
@@ -212,7 +213,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                     # see if we should save this locally
             if conf["save_local"]:
                 # save image to the liveview frame
-                cv2.imwrite(liveview_filename, frame)
+                cv2.imwrite(liveview_motion_filename, frame)
                 # give some feedback on the console
                 print logc.INFO + "[SAVE]" + logc.ENDC, "[" + str(ts_utc) + "]", "frame updated"
 
@@ -266,6 +267,10 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     if conf["show_video"]:
         cv2.imshow("PiGuard", frame)
         key = cv2.waitKey(1) & 0xFF
+
+    if conf["liveview_en"]:
+        # save image to the liveview frame
+        cv2.imwrite(liveview_filename, frame)
 
         # if the `q` key is pressed, break from the lop
         # if key == ord("q"):
