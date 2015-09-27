@@ -17,6 +17,7 @@ liveview_dir = join(os.getcwd(), 'liveview')
 liveview_filename = join(liveview_dir, 'liveview.jpg')
 liveview_motion_filename = join(liveview_dir, 'liveview_motion.jpg')
 liveview_log = join(liveview_dir, 'liveview_log.json')
+print liveview_log
 
 # create a colors object, enabled by default
 logc = logcolors.LogColors()
