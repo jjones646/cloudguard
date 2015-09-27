@@ -333,7 +333,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     else:
         # check to see if the running average has fallen to a level indicating
         # that previous movements are no longer in the reference frame
-        if (last_motion_ts_logged - datetime.utcnow()) > (5 * avg_delta_ts):
+        if (datetime.utcnow() - last_motion_ts_logged) > (5 * avg_delta_ts):
 
             # write a zero entry motion level to the logs
             if (motionLevel_last != 0.0) and (motionLevel == 0.0):
