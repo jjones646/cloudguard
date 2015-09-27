@@ -201,11 +201,12 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     try:
         if hierarchy.size:
-            motionLevel = ceil(sqrt(motionLevel)) + len(cnts)
+            motionLevel = ceil(2 * sqrt(motionLevel) + float(len(cnts)))
     except AttributeError:
-        motionLevel = motionLevel - 1
+        # decay down to 0
+        motionLevel = motionLevel - ((1 / 4) * motionLevel)
         if motionLevel < conf["motion_thresh"]:
-            motionLevel = 0
+            motionLevel = 0.0
 
     # loop over the contours
     for c in cnts:
@@ -279,7 +280,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         if conf["log_motion"]:
             # store the timestamp into a json log file
             log_entry = {}
-            log_entry["motion_count"] = motionCounter
+            log_entry["motion_count"] = motionLevel
             log_entry["ts"] = str(ts_utc)
             write_log(liveview_log, log_entry)
 
