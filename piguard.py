@@ -14,7 +14,7 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 # set the name for where the liveview file is saved
-liveview_dir = os.path.abspath(os.path.join(os.getcwd(), 'liveview'))
+liveview_dir = os.path.join(os.getcwd(), 'liveview')
 liveview_filename = os.path.join(liveview_dir, 'liveview.jpg')
 liveview_motion_filename = os.path.join(liveview_dir, 'liveview_motion.jpg')
 liveview_log = os.path.join(liveview_dir, 'liveview_log.json')
@@ -34,8 +34,8 @@ except OSError:
 if os.path.isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
     print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
-    os.rename(liveview_log, 
-        os.path.join(liveview_dir, os.path.basename(liveview_log)) + str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.json')
+    os.rename(liveview_log,
+              os.path.join(liveview_dir, os.path.basename(liveview_log) + str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.json'))
 
 # create this session's logfile
 open(liveview_log, "a+").close()
@@ -286,7 +286,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         try:
             os.rename(liveview_tmp, liveview_filename)
         except:
-            # fallback to removing file first, this is not idea but the best solution at the moment
+            # fallback to removing file first, this is not idea but the best
+            # solution at the moment
             os.remove(liveview_filename)
             os.rename(liveview_tmp, liveview_filename)
 
