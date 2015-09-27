@@ -57,4 +57,4 @@ def write_log(filename, log_entry):
 
 
 # Merge 2 json log files together
-def merge_logs(file1, file2):
+#def merge_logs(file1, file2):
