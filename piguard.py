@@ -140,6 +140,7 @@ if conf["show_video"]:
 
 motionLevel = 0
 motionLevel_last = 0
+avg_delta_ts = timedelta(0)
 # moving average array is the length of our number of triggering frames
 # for uploads
 moving_average_array = [timedelta()
