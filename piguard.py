@@ -279,8 +279,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         if conf["log_motion"]:
             # store the timestamp into a json log file
             log_entry = {}
-            log_entry["motion_count"] = motionLevel
             log_entry["ts"] = str(ts_utc)
+
+            # if (motionLevel_log == 0.0):
+            #     log_entry["motion_count"] = 0.0
+            #     write_log(liveview_log, log_entry)
+
+            log_entry["motion_count"] = motionLevel_log
 
             write_log(liveview_log, log_entry)
 
@@ -344,7 +349,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
             write_log(liveview_log, log_entry)
             print logc.FAIL + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "NO MOTION DETECTED"
-            
+
     # print "delta:", (datetime.utcnow() - last_motion_ts_logged)
     # print "motion delta:", (30 * avg_delta_ts)
 
