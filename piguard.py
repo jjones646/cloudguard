@@ -188,6 +188,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # vis = PiRGBArray(camera, size=camera.resolution)
         # vis = vis.array()
         vis = np.zeros((conf["resolution"][0], conf["resolution"][1], 3), np.uint8)
+        vis = imutils.resize(vis, width=500)
         np.trunc(vis)
         levels=0
         contours=[cv2.approxPolyDP(c, 3, True) for c in cnts]
