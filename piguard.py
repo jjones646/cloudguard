@@ -16,7 +16,12 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 # set the name for where the liveview file is saved
-liveview_dir = join(os.getcwd(), 'liveview')
+liveview_dir = abspath(join(os.getcwd(), 'liveview'))
+
+# make the liveview directory if it doesn't exist
+if not exists(liveview_dir):
+    os.makedirs(liveview_dir)
+
 liveview_filename = join(liveview_dir, 'liveview.jpg')
 liveview_motion_filename = join(liveview_dir, 'liveview_motion.jpg')
 liveview_log = join(liveview_dir, 'liveview_log.json')
@@ -33,7 +38,7 @@ except OSError:
     pass
 
 # check for existence of the log file
-if os.path.isfile(liveview_log):
+if isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
     print logc.INFO + "[INFO]" + logc.ENDC, "Archiving", basename(liveview_log)
     archive(liveview_log)
