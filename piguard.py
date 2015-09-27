@@ -290,13 +290,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             motionLevel_log_last = motionLevel_log
 
             # delta_ts = current_ts - last_motion_ts
-            delta_ts = motion_ts_delta
+            delta_ts = current_ts - last_motion_ts_logged
 
             # append to front and pop from back
             moving_average_array.append(delta_ts)
             moving_average_array.pop(0)
-
-            avg_delta_ts = sum(moving_average_array, timedelta(0)) / len(moving_average_array)
+            print sum(moving_average_array, timedelta(0))
+            avg_delta_ts = sum(moving_average_array, timedelta(0))
 
             print "moving avg:", sum(moving_average_array)
 
