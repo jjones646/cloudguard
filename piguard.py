@@ -325,7 +325,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
                 print logc.INFO + "[OK]" + logc.OK, "[" + str(ts_utc) + "]", "no motion detected"
 
-    delta_ts = (current_ts - last_motion_ts).seconds()
+    delta_ts = current_ts - last_motion_ts
     # append to back and pop from front
     moving_average_array.append(delta_ts)
     moving_average_array.pop(0)
