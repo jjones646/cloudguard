@@ -332,7 +332,10 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # append to front and pop from back
     moving_average_array.append(delta_ts)
     moving_average_array.pop(0)
-    print moving_average_array
+
+    avg_delta_ts = float(sum(moving_average_array)/len(moving_average_array))
+
+    print avg_delta_ts
     # avg_delta_ts = movingAverage(
     #     moving_average_array, window=conf["min_motion_frames"] * 4)
 
