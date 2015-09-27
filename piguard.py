@@ -130,8 +130,10 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     # the timestamp and occupied/unoccupied text
     frame = f.array
 
-    # update the timestamp
+    # update the timestamps
     timestamp = datetime.now()
+    ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
+    ts_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     # we start out assuming there is no motion in the image
     # the following will only update the detection state if this
@@ -173,14 +175,9 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         if cv2.contourArea(c) < conf["min_area"]:
             continue
 
-        # compute the bounding box for the contour, draw it on the frame,
-        # and update the text
+        # compute the bounding box for the contour, draw it on the frame
         (x, y, w, h) = cv2.boundingRect(c)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-    # draw the text and timestamp on the frame
-    ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-    ts_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     # write the timestamp & room state over the image
     cv2.putText(

@@ -1,5 +1,5 @@
 {    
-    "show_video": false,
+    "show_video": true,
     "save_local": true,
     "log_motion": true,
     "use_dropbox": false,
