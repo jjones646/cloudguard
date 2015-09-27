@@ -132,6 +132,11 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     # update the timestamp
     timestamp = datetime.now()
+
+    # we start out assuming there is no motion in the image
+    # the following will only update the detection state if this
+    # assumption can be proved wrong
+    motion_detected = False
     text = "Unoccupied"
 
     # resize the frame, convert it to grayscale, and blur it
@@ -162,6 +167,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     # loop over the contours
     for c in cnts:
+        motion_detected = True
+        text = "Occupied"
         # if the contour is too small, ignore it
         if cv2.contourArea(c) < conf["min_area"]:
             continue
@@ -170,26 +177,40 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # and update the text
         (x, y, w, h) = cv2.boundingRect(c)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        text = "Occupied"
 
     # draw the text and timestamp on the frame
     ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
     ts_utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
-    cv2.putText(frame, "Room Status: {}".format(
-        text), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-    cv2.putText(frame, ts, (10, frame.shape[
-                0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+    # write the timestamp & room state over the image
+    cv2.putText(
+        frame,
+        "Room Status: {}".format(text),
+        (10, 20),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.5,
+        (0, 0, 255),
+        1.4
+    )
+    cv2.putText(
+        frame,
+        ts,
+        (10, frame.shape[0] - 10),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.35,
+        (0, 0, 255),
+        1
+    )
 
     # check to see if the room is occupied
-    if text == "Occupied":
+    if motion_detected:
         # check to see if enough time has passed between uploads
         if (timestamp - lastUploaded).seconds >= conf["min_upload_seconds"]:
             # increment the motion counter
             motionCounter += 1
 
-        # check to see if the number of frames with consistent motion is
-        # high enough
+        # see if the number of consecutive frames with motion reaches out
+        # threshold
         if motionCounter >= conf["min_motion_frames"]:
                     # see if we should save this locally
             if conf["save_local"]:
