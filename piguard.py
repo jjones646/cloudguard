@@ -312,6 +312,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # check to see if the running average has fallen to a level indicating
         # that previous movements are no longer in the reference frame
         if (last_upload_ts - datetime.utcnow()).seconds > (10 * avg_delta_ts):
+
             # write a zero entry motion level to the logs
             if (motionLevel_last != 0.0) and (motionLevel == 0.0):
                 log_entry = {}
@@ -323,7 +324,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 motionLevel_last = motionLevel
                 ts_utc_last = ts_utc
 
-                print logc.INFO + "[INFO]" + logc.ENDC, "[" + str(ts_utc) + "]", "no motion detected"
+                print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "NO MOTION DETECTED"
 
     delta_ts = current_ts - last_motion_ts
     # append to back and pop from front
