@@ -25,6 +25,7 @@ logc = logcolors.LogColors()
 # remove the previous liveview file it one is there
 try:
     os.remove(liveview_filename)
+    os.remove(liveview_motion_filename)
 except OSError:
     pass
 
@@ -32,6 +33,10 @@ except OSError:
 if not os.path.isfile(liveview_log):
     # create file if there isn't a previous one
     open(liveview_log, "a+").close()
+else:
+    # archive any current log files by renaming them with a timestamp
+    print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
+    os.rename(liveview_log, os.path.basename(liveview_log) + str(datetime.utcnow()) + '.json')
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -244,7 +249,9 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 try:
                     log_data = json.load(f)
                 except ValueError:
-                    # if file is empty, initialize the json structure
+                    # if file is empty, initialize the
+                    # json structure & move the current file
+                    # just to be safe
                     log_data = {"motion": []}
 
             # append the new timestamp to the current logs

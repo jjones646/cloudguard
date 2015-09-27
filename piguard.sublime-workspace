@@ -4,8 +4,24 @@
 		"selected_items":
 		[
 			[
+				"li",
+				"liveview_filename"
+			],
+			[
 				"live",
 				"liveview_filename"
+			],
+			[
+				"motion",
+				"motion_detected"
+			],
+			[
+				"mot",
+				"motion_detected"
+			],
+			[
+				"camera",
+				"camera_warmup_time"
 			],
 			[
 				"cpu_",
@@ -227,15 +243,7 @@
 			"file": "piguard.py",
 			"settings":
 			{
-				"buffer_size": 6391,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "config.json",
-			"settings":
-			{
-				"buffer_size": 345,
+				"buffer_size": 9814,
 				"line_ending": "Unix"
 			}
 		}
@@ -279,7 +287,7 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 75.0,
+		"height": 96.0,
 		"last_filter": "install",
 		"selected_items":
 		[
@@ -304,7 +312,7 @@
 				"Preferences: Browse Packages"
 			]
 		],
-		"width": 449.0
+		"width": 485.0
 	},
 	"console":
 	{
@@ -325,15 +333,18 @@
 	},
 	"expanded_folders":
 	[
-		"/home/jonathan/Documents/piguard",
-		"/home/jonathan/Documents/piguard/imgsearch"
+		"/home/jonathan/Documents/piguard"
 	],
 	"file_history":
 	[
+		"/home/jonathan/Documents/piguard/piguard.py",
+		"/home/jonathan/Documents/piguard/config.json",
+		"/home/jonathan/Desktop/liveview_log.json",
+		"/home/jonathan/Documents/piguard/logcolors.py",
 		"/home/jonathan/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
+		"/home/jonathan/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
 		"/home/jonathan/Documents/piguard/test.py",
 		"/home/jonathan/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
-		"/home/jonathan/Documents/piguard/config.json",
 		"/home/jonathan/Documents/piguard/run-app",
 		"/home/jonathan/Desktop/stream",
 		"/home/jonathan/Documents/school/ECE 6122/projects/FourierTransform2D/fft2d.cc",
@@ -453,11 +464,7 @@
 		"/home/jonathan/Documents/robocup-software/firmware/common2015/drivers/timer-api/timer-api.hpp",
 		"/home/jonathan/Downloads/MCR_R2015a_glnxa64_installer/install",
 		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/targets/hal/TARGET_Silicon_Labs/TARGET_EFM32/pinmap_function.h",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/build/mbed/pinmap.h",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/hal/pinmap.h",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/targets/hal/TARGET_ARM_SSG/TARGET_MPS2/i2c_api.c",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/docs/COMMITTERS.md",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/src-ctrl/drivers/timer/timer_001.h"
+		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/build/mbed/pinmap.h"
 	],
 	"find":
 	{
@@ -485,6 +492,14 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"timestamp",
+			"box",
+			"now",
+			"datet",
+			"time",
+			"datetime",
+			"timestamp",
+			"Start",
 			"image",
 			"tab",
 			"truncate",
@@ -604,15 +619,7 @@
 			"TIMER_([\\w]+\\(.*\\)\\n\\{)",
 			"TIMER_[\\w]+\\(.*\\{",
 			"TIMER_[\\w]+\\(\\{",
-			"TIMER_[\\w]+\\({",
-			"TIMER_",
-			"enab",
-			"pwmc",
-			"\\]",
-			"\\[",
-			"IP_TIMER_",
-			"STATIC INLINE",
-			"IP_TIMER_001_T"
+			"TIMER_[\\w]+\\({"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -672,18 +679,18 @@
 				{
 					"buffer": 0,
 					"file": "piguard.py",
-					"semi_transient": false,
+					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 6391,
+						"buffer_size": 9814,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5734,
-								5734
+								0,
+								0
 							]
 						],
 						"settings":
@@ -693,40 +700,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2214.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "config.json",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 345,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								253,
-								253
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
