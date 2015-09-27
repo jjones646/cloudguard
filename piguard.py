@@ -185,7 +185,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if conf["show_contours"]:
-        vis = PiRGBArray(camera, size=camera.resolution).array()
+        vis = PiRGBArray(camera, size=camera.resolution)
         # vis = np.zeros((h, w, 3), np.uint8)
         levels = 0
         contours = [cv2.approxPolyDP(c, 3, True) for c in cnts]
