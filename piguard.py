@@ -140,8 +140,7 @@ motionLevel = 0
 motionLevel_last = 0
 # moving average array is the length of our number of triggering frames
 # for uploads
-moving_average_array = [0 for i in range(int(conf["min_motion_frames"]))]
-print type(moving_average_array)
+moving_average_array = [int(0) for i in range(int(conf["min_motion_frames"]))]
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -328,10 +327,11 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "NO MOTION DETECTED"
 
     delta_ts = current_ts - last_motion_ts
+    delta_ts = int(delta_ts.seconds)
     print "delta:", delta_ts.seconds
     # append to front and pop from back
     moving_average_array.append(delta_ts)
-    moving_average_array.pop()
+    #moving_average_array.pop()
     print moving_average_array
     # avg_delta_ts = movingAverage(
     #     moving_average_array, window=conf["min_motion_frames"] * 4)
