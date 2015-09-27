@@ -35,7 +35,8 @@ except OSError:
 # check for existence of the log file
 if os.path.isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
-    print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
+    print logc.INFO + "[INFO]" + logc.ENDC, "Archiving", basename(liveview_log)
+    archive(liveview_log)
 
 # create this session's logfile
 open(liveview_log, "a+").close()
