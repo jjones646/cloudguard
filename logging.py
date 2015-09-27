@@ -8,8 +8,8 @@ logc = logcolors.LogColors()
 
 
 def archive(filename):
-    pre_move = abs(filename)
-    post_move = abs(
+    pre_move = abspath(filename)
+    post_move = abspath(
         join(filename, str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S_")) + basename(filename)))
     try:
         os.rename(pre_move, post_move)
