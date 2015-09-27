@@ -135,6 +135,10 @@ if conf["show_video"]:
         "PiGuard", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 motionLevel = 0
+motionLevel_last = 0
+# moving average array is the length of our number of triggering frames
+# for uploads
+moving_average_array = [0 for i in range(conf["min_motion_frames"])]
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -186,18 +190,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     _, cnts, hierarchy = cv2.findContours(
         thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # if conf["show_contours"]:
-    # vis = PiRGBArray(camera, size=camera.resolution)
-    # vis = vis.array()
-    #     vis = np.zeros((conf["resolution"][0], conf["resolution"][1], 3), np.uint8)
-    #     vis = imutils.resize(vis, width=500)
-    #     np.trunc(vis)
-    #     levels=0
-    #     contours=[cv2.approxPolyDP(c, 3, True) for c in cnts]
-    #     cv2.drawContours(vis, contours, (-1, 3)[levels <= 0], (128, 255, 255),
-    #                      3, cv2.LINE_AA, hierarchy, abs(levels))
-    #     cv2.imshow('PiGuard Contours', vis)
 
     try:
         if hierarchy.size:
@@ -255,7 +247,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
             # reset the motion counter
             motionLevel = motionLevel + motionCounter
-            motionCounter = (1 / 4) * motionCounter
+            motionCounter = 0
 
             # see if we should save this locally
             if conf["save_local"]:
@@ -282,7 +274,11 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             log_entry = {}
             log_entry["motion_count"] = motionLevel
             log_entry["ts"] = str(ts_utc)
+
             write_log(liveview_log, log_entry)
+
+            motionLevel_last = motionLevel
+            ts_utc_last = ts_utc
             # give some feedback on the console
             print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
@@ -310,6 +306,25 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # solution at the moment
             os.remove(liveview_filename)
             os.rename(liveview_tmp, liveview_filename)
+    else:
+        # check to see if the running average has fallen to a level indicating
+        # that previous movements are no longer in the reference frame
+        if (lastUploaded - datetime.now()) > (10 * avg_delta_ts):
+            # write a zero entry motion level to the logs
+            if (motionLevel_last != 0.0) and (motionLevel == 0.0):
+                log_entry = {}
+                log_entry["motion_count"] = motionLevel
+                log_entry["ts"] = str(ts_utc)
+
+                write_log(liveview_log, log_entry)
+
+                motionLevel_last = motionLevel
+                ts_utc_last = ts_utc
+
+                print logc.INFO + "[OK]" + logc.OK, "[" + str(ts_utc) + "]", "no motion detected"
+
+    movingCycleAdd(moving_average_array, ts_utc - ts_utc_last)
+    avg_delta_ts = movingAverage(moving_average_array)
 
     # clear the stream in preparation for the next frame
     rawCapture.truncate(0)

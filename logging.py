@@ -2,6 +2,8 @@ import os
 from os.path import *
 from datetime import datetime
 import json
+import numpy as np
+from numpy import convolve
 from jsonmerge import Merger
 import logcolors
 
@@ -64,6 +66,16 @@ def write_log(filename, log_entry):
     else:
         print logc.WARN + "[WARN]" + logc.ENDC, filename, "is not a valid log file"
 
+
+def movingAverage(values, window):
+    weights = np.repeat(1.0, window) / window
+    sma = np.convolve(values, weights, 'valid')
+    return sma
+
+def movingCycleAdd(stack, val):
+    stack.append(val)
+    stack.pop()
+    return stack
 
 # Merge 2 json log files together
 # def merge_logs(file1, file2):
