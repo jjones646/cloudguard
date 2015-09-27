@@ -1,8 +1,6 @@
 # import the necessary packages
-import os
-import sys
-import time
-from os.path import basename, join
+import os, sys, time
+from os.path import *
 from datetime import datetime
 import json
 import argparse
