@@ -1,7 +1,7 @@
 import os
 from os.path import *
 from datetime import datetime
-import ujson as json
+import json
 from jsonmerge import Merger
 import logcolors
 
