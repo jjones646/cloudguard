@@ -323,7 +323,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 motionLevel_last = motionLevel
                 ts_utc_last = ts_utc
 
-                print logc.INFO + "[OK]" + logc.OK, "[" + str(ts_utc) + "]", "no motion detected"
+                print logc.INFO + "[INFO]" + logc.ENDC, "[" + str(ts_utc) + "]", "no motion detected"
 
     delta_ts = current_ts - last_motion_ts
     # append to back and pop from front
@@ -331,6 +331,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     moving_average_array.pop(0)
     avg_delta_ts = movingAverage(
         moving_average_array, window=conf["min_motion_frames"] / 2)
+
+    print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts
 
     # clear the stream in preparation for the next frame
     rawCapture.truncate(0)
