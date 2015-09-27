@@ -128,7 +128,9 @@ motionCounter = 0
 # initialize framve timestamp
 current_ts = datetime.utcnow()
 last_motion_ts = current_ts
+last_motion_ts_logged = current_ts
 last_upload_ts = current_ts
+motion_ts_delta = current_ts
 
 # create a GUI window if enabled
 if conf["show_video"]:
@@ -280,7 +282,24 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
             write_log(liveview_log, log_entry)
 
-            motionLevel_last = motionLevel
+            motion_ts_delta = current_ts - last_motion_ts_logged
+            last_motion_ts_logged = current_ts
+
+            motionLevel_log = motionLevel
+            motionLevel_log_last = motionLevel_log
+
+            # delta_ts = current_ts - last_motion_ts
+            delta_ts = int(motion_ts_delta.seconds)
+
+            # append to front and pop from back
+            moving_average_array.append(delta_ts)
+            moving_average_array.pop(0)
+
+            avg_delta_ts = float(
+                sum(moving_average_array) / len(moving_average_array))
+
+            print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts
+
             # give some feedback on the console
             print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
@@ -311,7 +330,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     else:
         # check to see if the running average has fallen to a level indicating
         # that previous movements are no longer in the reference frame
-        if (last_upload_ts - datetime.utcnow()).seconds > (10 * avg_delta_ts):
+        if (last_motion_ts_logged - datetime.utcnow()).seconds > (5 * avg_delta_ts):
 
             # write a zero entry motion level to the logs
             if (motionLevel_last != 0.0) and (motionLevel == 0.0):
@@ -322,24 +341,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 write_log(liveview_log, log_entry)
 
                 motionLevel_last = motionLevel
-                ts_utc_last = ts_utc
 
             print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "NO MOTION DETECTED"
-
-    delta_ts = current_ts - last_motion_ts
-    delta_ts = int(delta_ts.seconds)
-    print "delta:", delta_ts
-    # append to front and pop from back
-    moving_average_array.append(delta_ts)
-    moving_average_array.pop(0)
-
-    avg_delta_ts = float(sum(moving_average_array)/len(moving_average_array))
-
-    print avg_delta_ts
-    # avg_delta_ts = movingAverage(
-    #     moving_average_array, window=conf["min_motion_frames"] * 4)
-
-    # print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts
 
     # clear the stream in preparation for the next frame
     rawCapture.truncate(0)
