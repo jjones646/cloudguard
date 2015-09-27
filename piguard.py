@@ -191,6 +191,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # check to see if the number of frames with consistent motion is
         # high enough
         if motionCounter >= conf["min_motion_frames"]:
+                    # see if we should save this locally
+            if conf["save_local"]:
+                # save image to the liveview frame
+                cv2.imwrite(liveview_filename, frame)
+                # give some feedback on the console
+                print logc.INFO + "[SAVE]" + logc.ENDC, "[" + str(ts_utc) + "]", "frame updated"
+
             # check to see if dropbox sohuld be used
             if conf["use_dropbox"]:
                 # write the image to temporary file
@@ -207,13 +214,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # update the last uploaded timestamp and reset the motion counter
             lastUploaded = timestamp
             motionCounter = 0
-
-        # see if we should save this locally
-        if conf["save_local"]:
-            # save image to the liveview frame
-            cv2.imwrite(liveview_filename, frame)
-            # give some feedback on the console
-            print logc.INFO + "[SAVE]" + logc.ENDC, "[" + str(ts_utc) + "]", "frame updated"
 
         if conf["log_motion"]:
             # store the timestamp into a json log file
