@@ -13,4 +13,4 @@ def archive(filename):
     try:
         os.rename(pre_move, post_move)
     except:
-        print logc.WARN + "[WARN]" + logc.ENDC, "unable to archive", pre_move
+        print logc.WARN + "[WARN]" + logc.ENDC, "unable to move", pre_move, "to", post_move
