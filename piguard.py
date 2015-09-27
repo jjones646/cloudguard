@@ -202,7 +202,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     #     cv2.imshow('PiGuard Contours', vis)
     #
     if cnts:
-        motionLevel = motionLevel + len(cnts)
+        motionLevel = ceil(sqrt(motionLevel)) + len(cnts)
     else:
         motionLevel = motionLevel - 1
         if motionLevel < 0:
