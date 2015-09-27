@@ -142,7 +142,8 @@ motionLevel = 0
 motionLevel_last = 0
 # moving average array is the length of our number of triggering frames
 # for uploads
-moving_average_array = [timedelta() for i in range(int(conf["min_motion_frames"]))]
+moving_average_array = [timedelta()
+                        for i in range(int(conf["min_motion_frames"]))]
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -283,22 +284,22 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             write_log(liveview_log, log_entry)
 
             motion_ts_delta = current_ts - last_motion_ts_logged
-            print "motion delta:", motion_ts_delta
             last_motion_ts_logged = current_ts
 
             motionLevel_log = motionLevel
             motionLevel_log_last = motionLevel_log
 
             # delta_ts = current_ts - last_motion_ts
-            delta_ts = current_ts - last_motion_ts_logged
+            #delta_ts = current_ts - last_motion_ts_logged
+            print "motion delta:", motion_ts_delta
 
             # append to front and pop from back
-            moving_average_array.append(delta_ts)
+            moving_average_array.append(motion_ts_delta)
             moving_average_array.pop(0)
 
             avg_delta_ts = sum(moving_average_array, timedelta(0))
 
-            print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts.microseconds
+            print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts
             # give some feedback on the console
             print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
