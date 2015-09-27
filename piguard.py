@@ -283,6 +283,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             write_log(liveview_log, log_entry)
 
             motion_ts_delta = current_ts - last_motion_ts_logged
+            print "motion delta:", motion_ts_delta
             last_motion_ts_logged = current_ts
 
             motionLevel_log = motionLevel
