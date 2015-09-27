@@ -67,9 +67,9 @@ def write_log(filename, log_entry):
         print logc.WARN + "[WARN]" + logc.ENDC, filename, "is not a valid log file"
 
 
-def movingAverage(values, window):
+def movingAverage(vals, window):
     weights = np.repeat(1.0, window) / window
-    sma = np.convolve(values, weights, 'valid')
+    sma = np.convolve(vals, weights, 'valid')
     return sma
 
 # Merge 2 json log files together
