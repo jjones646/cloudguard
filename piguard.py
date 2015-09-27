@@ -270,7 +270,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     if conf["liveview_en"]:
         # save image to the liveview frame
-        liveview_tmp = liveview_filename + "tmp"
+        liveview_tmp = os.path.basename(liveview_filename) + "_tmp.jpg"
         cv2.imwrite(liveview_tmp, frame)
 
         # switch the name with the last stored frame
