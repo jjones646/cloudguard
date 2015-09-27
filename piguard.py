@@ -18,6 +18,8 @@ liveview_dir = os.path.join(os.getcwd(), 'liveview')
 liveview_filename = os.path.join(liveview_dir, 'liveview.jpg')
 liveview_motion_filename = os.path.join(liveview_dir, 'liveview_motion.jpg')
 liveview_log = os.path.join(liveview_dir, 'liveview_log.json')
+print liveview_log
+print os.path.splitext(liveview_log)[0]
 
 # create a colors object, enabled by default
 logc = logcolors.LogColors()
@@ -35,7 +37,7 @@ if os.path.isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
     print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
     os.rename(liveview_log,
-              os.path.join(liveview_dir, os.path.basename(liveview_log) + str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.json'))
+              os.path.join(liveview_dir, os.path.splitext(liveview_log)[0] + str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.json'))
 
 # create this session's logfile
 open(liveview_log, "a+").close()
@@ -279,7 +281,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     if conf["liveview_en"]:
         # save image to the liveview frame
-        liveview_tmp = os.path.basename(liveview_filename) + "_tmp.jpg"
+        liveview_tmp = os.path.splitext(liveview_filename)[0] + "_tmp.jpg"
         cv2.imwrite(liveview_tmp, frame)
 
         # switch the name with the last stored frame
