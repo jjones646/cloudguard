@@ -270,11 +270,16 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
     if conf["liveview_en"]:
         # save image to the liveview frame
-        cv2.imwrite(liveview_filename, frame)
+        liveview_tmp = liveview_filename + "tmp"
+        cv2.imwrite(liveview_tmp, frame)
 
-        # if the `q` key is pressed, break from the lop
-        # if key == ord("q"):
-        # 	break
+        # switch the name with the last stored frame
+        try:
+            os.rename(liveview_tmp, liveview_filename)
+        except:
+            # fallback to removing file first, this is not idea but the best solution at the moment
+            os.remove(liveview_filename)
+            os.rename(liveview_tmp, liveview_filename)
 
     # clear the stream in preparation for the next frame
     rawCapture.truncate(0)
