@@ -323,7 +323,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
                 print logc.INFO + "[OK]" + logc.OK, "[" + str(ts_utc) + "]", "no motion detected"
 
-    movingCycleAdd(moving_average_array, ts_utc - ts_utc_last)
+    moving_average_array.append(ts_utc - ts_utc_last)
+    moving_average_array.pop()
     avg_delta_ts = movingAverage(moving_average_array)
 
     # clear the stream in preparation for the next frame

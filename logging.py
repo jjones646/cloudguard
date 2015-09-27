@@ -72,10 +72,5 @@ def movingAverage(values, window):
     sma = np.convolve(values, weights, 'valid')
     return sma
 
-def movingCycleAdd(stack, val):
-    stack.append(val)
-    stack.pop()
-    return stack
-
 # Merge 2 json log files together
 # def merge_logs(file1, file2):
