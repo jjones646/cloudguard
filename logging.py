@@ -37,24 +37,32 @@ def archive(filename):
 
 
 def write_log(filename, log_entry):
-    with open(liveview_log) as f:
-        try:
-            log_data = json.load(f)
-        except ValueError:
-            # if file is empty, initialize the
-            # json structure & move the current file
-            # just to be safe
-            log_data = {"motion": []}
-            print logc.WARN + "[WARN]" + logc.ENDC, "moving", "could not detect valid json schema in", filename, ", archiving file"
+    filename = abspath(filename)
+    if isfile(abspath(filename)):
+        needArchive = False
+        with open(filename) as f:
+            try:
+                log_data = json.load(f)
+            except ValueError:
+                # if file is empty, initialize the
+                # json structure & move the current file
+                # just to be safe
+                log_data = {"motion": []}
+                print logc.WARN + "[WARN]" + logc.ENDC, "moving", "could not detect valid json schema in", filename, ", archiving file"
+                needArchive = True
+
+        if needArchive:
             archive(filename)
 
-    # append the new timestamp to the current logs
-    log_data["motion"].append(log_entry)
+        # append the new timestamp to the current logs
+        log_data["motion"].append(log_entry)
 
-    # rewrite the file
-    with open(liveview_log, "w") as f:
-        json.dump(log_data, f)
+        # rewrite the file
+        with open(filename, "w") as f:
+            json.dump(log_data, f)
+    else:
+        print logc.WARN + "[WARN]" + logc.ENDC, filename, "is not a valid log file"
 
 
 # Merge 2 json log files together
-#def merge_logs(file1, file2):
+# def merge_logs(file1, file2):
