@@ -295,11 +295,10 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             # append to front and pop from back
             moving_average_array.append(delta_ts)
             moving_average_array.pop(0)
-            print sum(moving_average_array, timedelta(0))
+
             avg_delta_ts = sum(moving_average_array, timedelta(0))
 
-            print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts
-
+            print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta.strftime('%Y-%m-%d %H:%M:%S.%f')[:-5]
             # give some feedback on the console
             print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
