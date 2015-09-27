@@ -198,13 +198,13 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     #     cv2.drawContours(vis, contours, (-1, 3)[levels <= 0], (128, 255, 255),
     #                      3, cv2.LINE_AA, hierarchy, abs(levels))
     #     cv2.imshow('PiGuard Contours', vis)
-    
+
     try:
         if hierarchy.size:
             motionLevel = ceil(sqrt(motionLevel)) + len(cnts)
     except AttributeError:
         motionLevel = motionLevel - 1
-        if motionLevel < 0:
+        if motionLevel < conf["motion_thresh"]:
             motionLevel = 0
 
     # loop over the contours

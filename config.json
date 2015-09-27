@@ -3,6 +3,7 @@
     "save_local": true,
     "liveview_en": true,
     "show_contours": true,
+    "motion_thresh": 5.0,
     "log_motion": true,
     "use_dropbox": false,
     "dropbox_key": null,
