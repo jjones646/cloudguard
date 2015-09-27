@@ -282,7 +282,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             write_log(liveview_log, log_entry)
 
             # give some feedback on the console
-            print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added"
+            print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
     # otherwise, the room is not occupied
     else:
