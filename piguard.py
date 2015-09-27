@@ -297,7 +297,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             moving_average_array.pop(0)
 
             avg_delta_ts = float(
-                sum(moving_average_array) / len(moving_average_array))
+                sum(moving_average_array))
 
             print logc.OK + "[OK]" + logc.ENDC, "[" + str(ts_utc) + "]", "moving average:", avg_delta_ts
 
