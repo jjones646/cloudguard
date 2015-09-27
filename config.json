@@ -2,6 +2,7 @@
     "show_video": false,
     "save_local": true,
     "liveview_en": true,
+    "show_contours": true,
     "log_motion": true,
     "use_dropbox": false,
     "dropbox_key": null,

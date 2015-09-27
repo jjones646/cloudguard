@@ -4,11 +4,13 @@ import sys
 import time
 from os.path import *
 from datetime import datetime
+import numpy as np
 import json
 import argparse
 import warnings
 import imutils
 import cv2
+import threading
 import logcolors
 from logging import *
 from imgsearch.tempimage import TempImage
@@ -178,8 +180,18 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
     thresh = cv2.threshold(
         frameDelta, conf["delta_thresh"], 255, cv2.THRESH_BINARY)[1]
     thresh = cv2.dilate(thresh, None, iterations=2)
-    (_, cnts, _) = cv2.findContours(
+
+    _, cnts, hierarchy = cv2.findContours(
         thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if conf["show_contours"]:
+        # vis = PiRGBArray(camera, size=camera.resolution).array()
+        vis = np.zeros((h, w, 3), np.uint8)
+        levels = 0
+        contours = [cv2.approxPolyDP(c, 3, True) for c in cnts]
+        cv2.drawContours(vis, contours, (-1, 3)[levels <= 0], (128, 255, 255),
+                         3, cv2.LINE_AA, hierarchy, abs(levels))
+        cv2.imshow('PiGuard Contours', vis)
 
     # loop over the contours
     for c in cnts:
@@ -223,12 +235,18 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
         # see if the number of consecutive frames with motion reaches out
         # threshold
         if motionCounter >= conf["min_motion_frames"]:
-                    # see if we should save this locally
+            # update the last uploaded timestamp
+            lastUploaded = timestamp
+
+            # reset the motion counter
+            motionCounter = 0
+
+            # see if we should save this locally
             if conf["save_local"]:
                 # save image to the liveview frame
                 cv2.imwrite(liveview_motion_filename, frame)
                 # give some feedback on the console
-                print logc.INFO + "[SAVE]" + logc.ENDC, "[" + str(ts_utc) + "]", "frame updated"
+                print logc.INFO + "[OK]" + logc.OK, "[" + str(ts_utc) + "]", "frame updated"
 
             # check to see if dropbox sohuld be used
             if conf["use_dropbox"]:
@@ -243,34 +261,15 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
                 client.put_file(path, open(t.path, "rb"))
                 t.cleanup()
 
-            # update the last uploaded timestamp and reset the motion counter
-            lastUploaded = timestamp
-            motionCounter = 0
-
         if conf["log_motion"]:
             # store the timestamp into a json log file
             log_entry = {}
             log_entry["motion_count"] = motionCounter
             log_entry["ts"] = str(ts_utc)
-
-            with open(liveview_log) as f:
-                try:
-                    log_data = json.load(f)
-                except ValueError:
-                    # if file is empty, initialize the
-                    # json structure & move the current file
-                    # just to be safe
-                    log_data = {"motion": []}
-
-            # append the new timestamp to the current logs
-            log_data["motion"].append(log_entry)
-
-            # rewrite the file
-            with open(liveview_log, "w") as f:
-                json.dump(log_data, f)
+            write_log(liveview_log, log_entry)
 
             # give some feedback on the console
-            print logc.INFO + "[LOG]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added"
+            print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added"
 
     # otherwise, the room is not occupied
     else:
