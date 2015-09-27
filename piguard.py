@@ -14,9 +14,10 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 # set the name for where the liveview file is saved
-liveview_filename = os.path.join(os.getcwd(), 'liveview', 'liveview.jpg')
-liveview_motion_filename = os.path.join(os.getcwd(), 'liveview', 'liveview_motion.jpg')
-liveview_log = os.path.join(os.getcwd(), 'liveview', 'liveview_log.json')
+liveview_dir = os.path.abspath(os.path.join(os.getcwd(), 'liveview'))
+liveview_filename = os.path.join(liveview_dir, 'liveview.jpg')
+liveview_motion_filename = os.path.join(liveview_dir, 'liveview_motion.jpg')
+liveview_log = os.path.join(liveview_dir, 'liveview_log.json')
 
 # create a colors object, enabled by default
 logc = logcolors.LogColors()
@@ -30,13 +31,14 @@ except OSError:
     pass
 
 # check for existence of the log file
-if not os.path.isfile(liveview_log):
-    # create file if there isn't a previous one
-    open(liveview_log, "a+").close()
-else:
+if os.path.isfile(liveview_log):
     # archive any current log files by renaming them with a timestamp
     print logc.INFO + "[INFO]" + logc.ENDC, "Archiving old log file"
-    os.rename(liveview_log, os.path.basename(liveview_log) + str(datetime.utcnow()) + '.json')
+    os.rename(liveview_log, 
+        os.path.join(liveview_dir, os.path.basename(liveview_log)) + str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S")) + '.json')
+
+# create this session's logfile
+open(liveview_log, "a+").close()
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
