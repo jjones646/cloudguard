@@ -255,7 +255,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 
             # reset the motion counter
             motionLevel = motionLevel + motionCounter
-            motionCounter = 0
+            motionCounter = (1 / 4) * motionCounter
 
             # see if we should save this locally
             if conf["save_local"]:
@@ -283,7 +283,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
             log_entry["motion_count"] = motionLevel
             log_entry["ts"] = str(ts_utc)
             write_log(liveview_log, log_entry)
-
             # give some feedback on the console
             print logc.INFO + "[OK]" + logc.ENDC, "[" + log_entry["ts"] + "]", "log entry added, motion level:", motionLevel
 
