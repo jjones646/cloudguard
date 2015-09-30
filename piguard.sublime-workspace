@@ -4,20 +4,44 @@
 		"selected_items":
 		[
 			[
-				"li",
-				"liveview_filename"
+				"live",
+				"liveview_log"
 			],
 			[
-				"live",
-				"liveview_filename"
+				"motionL",
+				"motionLevel_log"
+			],
+			[
+				"avg",
+				"avg_delta_ts"
+			],
+			[
+				"last",
+				"last_motion_ts_logged"
+			],
+			[
+				"moving",
+				"moving_average_array"
+			],
+			[
+				"movin",
+				"moving_average_array"
 			],
 			[
 				"motion",
-				"motion_detected"
+				"motionCounter"
 			],
 			[
 				"mot",
-				"motion_detected"
+				"motionLevel"
+			],
+			[
+				"livevi",
+				"liveview_dir"
+			],
+			[
+				"li",
+				"liveview_log"
 			],
 			[
 				"camera",
@@ -243,7 +267,23 @@
 			"file": "piguard.py",
 			"settings":
 			{
-				"buffer_size": 9814,
+				"buffer_size": 12226,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "config.json",
+			"settings":
+			{
+				"buffer_size": 448,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "logging.py",
+			"settings":
+			{
+				"buffer_size": 2219,
 				"line_ending": "Unix"
 			}
 		}
@@ -337,8 +377,8 @@
 	],
 	"file_history":
 	[
-		"/home/jonathan/Documents/piguard/piguard.py",
 		"/home/jonathan/Documents/piguard/config.json",
+		"/home/jonathan/Documents/piguard/piguard.py",
 		"/home/jonathan/Desktop/liveview_log.json",
 		"/home/jonathan/Documents/piguard/logcolors.py",
 		"/home/jonathan/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
@@ -492,6 +532,28 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"motionLevel_log",
+			"avg_delta_ts",
+			"last_motion_ts_logged",
+			"ts_utc",
+			"motionLevel",
+			"motionLevel_last",
+			"last_motion_ts",
+			"moving_average_array",
+			"timestamp",
+			"last_motion_ts",
+			"current_ts",
+			"ts",
+			"timesta",
+			"ts_ut",
+			"motionLevel",
+			"thre",
+			"math",
+			"x",
+			"array",
+			"json",
+			"*\n",
+			", ",
 			"timestamp",
 			"box",
 			"now",
@@ -597,29 +659,7 @@
 			"MPU6050_DEFAULT_ADDRESS",
 			"clear_SI",
 			"id",
-			"ticker_irq_handler",
-			"us_ticker_irq_handler",
-			"PinMap_",
-			"PinMap_Timer",
-			"\\}[\\s]+PinMap",
-			"}[\\s]+PinMap",
-			"PinMap_",
-			"PinMap(([\\s]+)?\\*)?([\\s]+\\=)?",
-			"PinMap ([\\s]+)?\\*)? ([\\s]+\\=)",
-			"PinMap ([\\s]+)?\\*)?([\\s]+=)?",
-			"PinMap([\\s]+)?\\*)?([\\s]+=)?",
-			"PinMap([\\s]+)?\\*)?([\\s]+\\=)?",
-			"PinMap([\\s]+)?\\*",
-			"TIM",
-			"EM",
-			"mcr",
-			"trigger",
-			"TIM_TypeDef",
-			"TIMER_CAP_SRC_STATE",
-			"TIMER_([\\w]+\\(.*\\)\\n\\{)",
-			"TIMER_[\\w]+\\(.*\\{",
-			"TIMER_[\\w]+\\(\\{",
-			"TIMER_[\\w]+\\({"
+			"ticker_irq_handler"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -679,18 +719,18 @@
 				{
 					"buffer": 0,
 					"file": "piguard.py",
-					"semi_transient": true,
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9814,
+						"buffer_size": 12226,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								4361,
+								4361
 							]
 						],
 						"settings":
@@ -700,10 +740,69 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1993.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "config.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 448,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								320,
+								320
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "logging.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2219,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2090,
+								2090
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": -0.0,
+						"translation.y": 864.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
