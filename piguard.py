@@ -18,6 +18,11 @@ from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
+try:
+    print logc.INFO + "[INFO]" + logc.ENDC, "Num CPUs:", os.cpu_count()
+except NotImplementedError:
+    pass
+
 # set the name for where the liveview file is saved
 liveview_dir = abspath(join(os.getcwd(), 'liveview'))
 
