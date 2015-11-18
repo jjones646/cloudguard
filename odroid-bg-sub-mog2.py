@@ -21,7 +21,7 @@ fps = 30
 cap = cv2.VideoCapture(-1)
 
 fpsPre = cap.get(cv2.CAP_PROP_FPS)
-cap.set(cv2.CV_CAP_PROP_FPS, fps)
+cap.set(cv2.CAP_PROP_FPS, fps)
 fpsNow = cap.get(cv2.CAP_PROP_FPS)
 
 dimmPre = (cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -31,8 +31,8 @@ dimmNow = (cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 print "Default dimmensions:\t{}".format(dimmPre)
 print "Updated dimmensions:\t{}".format(dimmNow)
-print "Default FPS:\t\t{:.3f}".format(fpsPre)
-print "Updated FPS:\t\t{:.3f}".format(fpsNow)
+print "Default FPS:\t\t{:.2f}".format(fpsPre)
+print "Updated FPS:\t\t{:.2f}".format(fpsNow)
 
 # background subtractor
 fgbg = cv2.createBackgroundSubtractorMOG2(200, 14)
