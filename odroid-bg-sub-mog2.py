@@ -15,24 +15,31 @@ from common import clock, draw_str, StatValue
 
 
 dimm = (640,480)
-targetFPS = 11
+fps = 30
 
 # first camera, with resolution specified above
 cap = cv2.VideoCapture(-1)
-fps = cap.get(cv2.CAP_PROP_FPS)
+
+fpsPre = cap.get(cv2.CAP_PROP_FPS)
+cap.set(cv2.CV_CAP_PROP_FPS, fps)
+fpsNow = cap.get(cv2.CAP_PROP_FPS)
+
+dimmPre = (cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, dimm[0])
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, dimm[1])
-dimmReal = (cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+dimmNow = (cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-print "Real dimmensions:\t{}".format(dimmReal)
-print "Target FPS:\t\t{:.3f}".format(fps)
+print "Default dimmensions:\t{}".format(dimmPre)
+print "Updated dimmensions:\t{}".format(dimmNow)
+print "Default FPS:\t\t{:.3f}".format(fpsPre)
+print "Updated FPS:\t\t{:.3f}".format(fpsNow)
 
 # background subtractor
 fgbg = cv2.createBackgroundSubtractorMOG2(200, 14)
 
 # encoded file object
 vidStreamName = abspath(join(os.getcwd(), '/home/jonathan/Documents/piguard/liveview/vidStream.avi'))
-vidStream = cv2.VideoWriter(vidStreamName, cv2.VideoWriter_fourcc(*'XVID'), targetFPS, dimm)
+vidStream = cv2.VideoWriter(vidStreamName, cv2.VideoWriter_fourcc(*'XVID'), fps, dimm)
 
 # find the size to use for the gaussian blur
 blurSz = dimm[0]/30
