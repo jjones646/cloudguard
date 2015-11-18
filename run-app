@@ -1,7 +1,2 @@
 #!/bin/bash
-
-# setup everything for using the virtualenv commands
-source `which virtualenvwrapper.sh`
-
-# startup python & pass it our configuration
-/home/pi/.virtualenvs/web-app/bin/python piguard.py --conf config.json
+python piguard.py --conf config.json

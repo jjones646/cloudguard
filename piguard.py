@@ -13,7 +13,7 @@ import imutils
 import cv2
 import threading
 import logcolors
-from logging import *
+from guardlogger import *
 from imgsearch.tempimage import TempImage
 from picamera.array import PiRGBArray
 from picamera import PiCamera
