@@ -267,15 +267,7 @@
 			"file": "piguard.py",
 			"settings":
 			{
-				"buffer_size": 12226,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "config.json",
-			"settings":
-			{
-				"buffer_size": 448,
+				"buffer_size": 12341,
 				"line_ending": "Unix"
 			}
 		},
@@ -377,8 +369,9 @@
 	],
 	"file_history":
 	[
-		"/home/jonathan/Documents/piguard/config.json",
 		"/home/jonathan/Documents/piguard/piguard.py",
+		"/home/jonathan/Documents/piguard/logging.py",
+		"/home/jonathan/Documents/piguard/config.json",
 		"/home/jonathan/Desktop/liveview_log.json",
 		"/home/jonathan/Documents/piguard/logcolors.py",
 		"/home/jonathan/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
@@ -503,12 +496,11 @@
 		"/home/jonathan/Documents/robocup-software/firmware/common2015/drivers/timer-api/timer-api.cpp",
 		"/home/jonathan/Documents/robocup-software/firmware/common2015/drivers/timer-api/timer-api.hpp",
 		"/home/jonathan/Downloads/MCR_R2015a_glnxa64_installer/install",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/targets/hal/TARGET_Silicon_Labs/TARGET_EFM32/pinmap_function.h",
-		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/build/mbed/pinmap.h"
+		"/home/jonathan/Documents/robocup-software/build/firmware/mbed/mbed_libraries-prefix/src/mbed_libraries/libraries/mbed/targets/hal/TARGET_Silicon_Labs/TARGET_EFM32/pinmap_function.h"
 	],
 	"find":
 	{
-		"height": 35.0
+		"height": 25.0
 	},
 	"find_in_files":
 	{
@@ -722,15 +714,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12226,
+						"buffer_size": 12341,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4361,
-								4361
+								6610,
+								6610
 							]
 						],
 						"settings":
@@ -739,8 +731,8 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 1993.0,
+						"translation.x": -0.0,
+						"translation.y": 3213.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -748,38 +740,8 @@
 				},
 				{
 					"buffer": 1,
-					"file": "config.json",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 448,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								320,
-								320
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
 					"file": "logging.py",
-					"semi_transient": false,
+					"semi_transient": true,
 					"settings":
 					{
 						"buffer_size": 2219,
@@ -789,17 +751,18 @@
 						"selection":
 						[
 							[
-								2090,
-								2090
+								0,
+								0
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": -0.0,
-						"translation.y": 864.0,
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -810,7 +773,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 25.0
 	},
 	"input":
 	{
@@ -855,7 +818,7 @@
 	"project": "piguard.sublime-project",
 	"replace":
 	{
-		"height": 64.0
+		"height": 46.0
 	},
 	"save_all_on_build": true,
 	"select_file":
