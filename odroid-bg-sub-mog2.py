@@ -9,6 +9,8 @@ import cvfps
 import multiprocessing as mp
 import numpy as np
 from os.path import *
+from peopledetect import detectPerson
+from facedetect import detectFace
 from multiprocessing.pool import ThreadPool
 from collections import deque
 from common import clock, draw_str, StatValue
@@ -28,10 +30,8 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, dimm[0])
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, dimm[1])
 dimmNow = (cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-print "Default dimmensions:\t{}".format(dimmPre)
-print "Updated dimmensions:\t{}".format(dimmNow)
-print "Default FPS:\t\t{:.2f}".format(fpsPre)
-print "Updated FPS:\t\t{:.2f}".format(fpsNow)
+print "Dimmensions:\t{}".format(dimmNow)
+print "FPS:\t\t{:.2f}".format(fpsNow)
 
 # background subtractor
 fgbg = cv2.createBackgroundSubtractorMOG2(200, 14)
@@ -46,62 +46,8 @@ if blurSz % 2 == 0:
     blurSz += 1
 blurSz = (blurSz, blurSz)
 
-
-class DummyTask:
-    def __init__(self, data):
-        self.data = data
-    def ready(self):
-        return True
-    def get(self):
-        return self.data
-
-
-def writeRects(frame, frameRef):
-    # get contours
-    _, cnts, hierarchy = cv2.findContours(
-        frameRef.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # loop over the contours
-    for c in cnts:
-        # if the contour is too small, ignore it
-        if cv2.contourArea(c) < 4000:
-            continue
-
-        # min area rectangle (rotated)
-        box = cv2.boxPoints(cv2.minAreaRect(c))
-        box = np.int0(box)
-        cv2.drawContours(frame, [box], 0, (0,0,255), 2)
-    return frame
-
-
-def processFrame(frame, t0, rotateAng=False, newWidth=False):
-    if rotateAng is not False:
-        frame = imutils.rotate(frame, angle=rotateAng)
-    if newWidth is not False:
-        frame = imutils.resize(frame, width=newWidth)
-    
-    #downsample & blur
-    frame_blur = frame
-    cv2.pyrDown(frame, frame_blur)
-    # bg sub
-    fgmask = fgbg.apply(frame_blur)
-    # put the time on our frame
-    cv2.putText(
-            frame,
-            "{}".format(t0),
-            (10, frame.shape[0] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.45,
-            (0,0,255),
-            1
-    )
-    frame = writeRects(frame, fgmask)
-    return frame, t0
-
-
-threaded_mode = True
-
 cv2.namedWindow('PiGuard', cv2.WINDOW_NORMAL)
+threaded_mode = True
 
 threadN = mp.cpu_count()
 pool = ThreadPool(processes=threadN)
@@ -113,27 +59,92 @@ last_frame_time = clock()
 
 fpsTimer = cvfps.cvTimer(length=50, target_fps=fps)
 
+class DummyTask:
+    def __init__(self, data):
+        self.data = data
+    def ready(self):
+        return True
+    def get(self):
+        return self.data
+
+def drawFrame(frame, rects, thickness=1, color=(127,127,127)):
+    detections = 0
+    frameFrames = np.zeros(frame.shape, np.uint8)
+    # get contours
+    _, cnts, hierarchy = cv2.findContours(
+        rects.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # loop over the contours
+    for c in cnts:
+        # if the contour is too small, ignore it
+        if cv2.contourArea(c) < 2500:
+            continue
+        box = cv2.boxPoints(cv2.minAreaRect(c))
+        box = np.int0(box)
+        cv2.drawContours(frameFrames, [box], 0, color, thickness)
+        detections += 1
+    return frameFrames, detections
+
+def processFrame(frame, t0, timestamp, rotateAng=False, newWidth=False):
+    if rotateAng is not False:
+        frame = imutils.rotate(frame, angle=rotateAng)
+    if newWidth is not False:
+        frame = imutils.resize(frame, width=newWidth)
+
+    frameBak = frame.copy()
+    #downsample & blur
+    cv2.pyrDown(frame.copy(), frame)
+    # bg sub
+    fgmask = fgbg.apply(frame)
+    # get our frame outlines
+    frame, moveCount = drawFrame(frame, fgmask, thickness=2)
+    # return immediately if there's no motion
+    if moveCount == 0:
+        return frameBak, frame, t0, moveCount, timestamp
+
+    frame = cv2.add(frame, detectPerson(frameBak))
+    frame = cv2.add(frame, detectFace(frameBak))
+
+    return frameBak, frame, t0, moveCount, timestamp
+
 while True:
     while len(pending) > 0 and pending[0].ready():
-        res, t0 = pending.popleft().get()
-        latency.update(clock() - t0)
-        draw_str(res, (20, 20), "threaded:       {}".format(threaded_mode))
-        draw_str(res, (20, 40), "threads:        {}".format(threadN))
-        draw_str(res, (20, 60), "latency:        {:.1f}ms".format(latency.value*1000))
-        draw_str(res, (20, 80), "frame interval: {:.1f}ms".format(frame_interval.value*1000))
-        fpsTimer.fps
-        draw_str(res, (20, 100),"fps:            {:.2f}".format(fpsTimer.avg_fps))
-        cv2.imshow('PiGuard', res)
+        frame, frameDraw, tt, detected, ts = pending.popleft().get()
+        latency.update(clock() - tt)
+        if detected > 0:
+            # overlay the drawings
+            sz = frame.shape
+            roi = frame[0:sz[0], 0:sz[1]]
+            frameMask = cv2.cvtColor(frameDraw, cv2.COLOR_BGR2GRAY)
+            _, frameMask = cv2.threshold(frameMask, 10, 255, cv2.THRESH_BINARY)
+            frameBg = cv2.bitwise_and(roi, roi, mask=cv2.bitwise_not(frameMask))
+            frameMaskFg = cv2.bitwise_and(frameDraw, frameDraw, mask=frameMask)
+            frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
+            # put the time on our frame
+            cv2.putText(
+                    frame,
+                    "{}".format(ts),
+                    (10, frame.shape[0] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.55,
+                    (0,0,255),
+                    1
+            )
+            # overlay stats
+            draw_str(frame, (20, 20), "threaded:       {} ({})".format(threaded_mode, threadN))
+            draw_str(frame, (20, 38), "latency:        {:.1f}ms".format(latency.value*1000))
+            draw_str(frame, (20, 56), "frame interval: {:.1f}ms".format(frame_interval.value*1000))
+            cv2.imshow('PiGuard', frame)
 
     if len(pending) < threadN:
         ret, frame = cap.read()
         t = clock()
         frame_interval.update(t - last_frame_time)
         last_frame_time = t
+        ts = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
         if threaded_mode:
-            task = pool.apply_async(processFrame, args=(frame.copy(), t, 90))
+            task = pool.apply_async(processFrame, args=(frame.copy(), t, ts))
         else:
-            task = DummyTask(processFrame(frame, t, 90))
+            task = DummyTask(processFrame(frame, t, ts))
 
         pending.append(task)
 
