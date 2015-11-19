@@ -36,6 +36,6 @@ def detectPerson(frame):
         else:
             found_filtered.append(r)
 
-    drawFrame(frameFrames, found, color=(255, 127, 0))
+    drawFrame(frameFrames, found, color=(255, 127, 127))
     drawFrame(frameFrames, found_filtered, thickness=3)
-    return frameFrames
+    return frameFrames, len(found_filtered), found_filtered

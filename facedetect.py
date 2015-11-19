@@ -34,6 +34,6 @@ def drawFrame(frame, rects, thickness=1, color=(255, 255, 0)):
 def detectFace(frame):
     frameFrames = np.zeros(frame.shape, np.uint8)
     frameBw = cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
-    rects = detect(frameBw, cascade, mn=4)
+    rects = detect(frame, cascade, mn=4)
     drawFrame(frameFrames, rects, thickness=2, color=(0, 255, 0))
     return frameFrames, len(rects), rects

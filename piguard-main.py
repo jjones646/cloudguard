@@ -12,13 +12,18 @@ from common import clock, draw_str, StatValue
 from peopledetect import detectPerson
 from facedetect import detectFace
 from upperbodydetect import detectUppderBody
+from fullbodydetect import detectBody
 
 rez = (640, 480)
-fps = 10
+fps = 15
 contourThresh = 2500
-bgSubHist = 250
-bgSubThresh = 16
+bgSubHist = 300
+bgSubThresh = 14
 rotation = 0
+
+faceDetectEn = True
+uppderBodyDetectEn = True
+fullBodyDetectEn = True
 
 # find out how many cameras are connected
 devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10),
@@ -34,7 +39,7 @@ for dev in devs:
     print("--  USB device at {:04X}:{:04X}".format(dev.idVendor, dev.idProduct))
 
 testbench_fn = abspath(join(dirname(realpath(__file__)),
-                            "testbench_footage_001.mp4"))
+                            "testbench_footage_002.mp4"))
 
 # this selects the first camera found camera
 cap = cv2.VideoCapture(-1)
@@ -75,15 +80,15 @@ threadingEn = True
 threadN = mp.cpu_count()
 
 pool = ThreadPool(processes=threadN)
-pending = deque()
+pending = deque(maxlen=threadN)
 
 latency = StatValue()
 frame_interval = StatValue()
 last_frame_time = clock()
 
 
-def drawFrame(frame, rects, thickness=1, color=(127, 127, 127)):
-    detections = 0
+def drawFrame(frame, rects, thickness=1, color=(150, 150, 150)):
+    dCount = 0
     frameFrames = np.zeros(frame.shape, np.uint8)
     # get contours
     _, cnts, hierarchy = cv2.findContours(
@@ -96,39 +101,49 @@ def drawFrame(frame, rects, thickness=1, color=(127, 127, 127)):
         box = cv2.boxPoints(cv2.minAreaRect(c))
         box = np.int0(box)
         cv2.drawContours(frameFrames, [box], 0, color, thickness)
-        detections += 1
-    return frameFrames, detections
+        dCount += 1
+    return frameFrames, dCount
 
 
-def processFrame(frame, t0, ts, rotateAng=False, newWidth=False):
+def processFrame(frameI, t0, ts, rotateAng=False, newWidth=False):
+    shapeOrig = frameI.shape
     if rotateAng is not False:
-        frame = imutils.rotate(frame, angle=rotateAng)
+        frameI = imutils.rotate(frameI, angle=rotateAng)
     if newWidth is not False:
-        frame = imutils.resize(frame, width=newWidth)
-
-    frameBak = frame.copy()
-    # downsample & blur
-    cv2.pyrDown(frame.copy(), frame)
-    # frame = cv2.pyrDown(frame.copy())
+        frameI = imutils.resize(frameI, width=newWidth)
+    # blur
+    frameBlur = cv2.GaussianBlur(frameI, (9, 9), 0)
     # bg sub
-    fgmask = fgbg.apply(frame)
+    fgmask = fgbg.apply(frameBlur)
     # get our frame outlines
-    frame, det = drawFrame(frame, fgmask, thickness=2)
+    frame, det = drawFrame(frameI, fgmask, thickness=1)
     det += 1
+    # frameBwHistEq = cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+    frameBwHistEq = frame
     # return immediately if there's no motion
-    if det != 0:
-        frame = cv2.add(frame, detectPerson(frameBak))
-        frame = cv2.add(frame, detectUppderBody(frameBak))
-        faceF, faceCount, faceRects = detectFace(frameBak)
-        if faceCount != 0:
-            frame = cv2.add(frame, faceF)
+    if det > 0:
+        if fullBodyDetectEn is True:
+            frameBody, bodyCount, bodyRects = detectBody(frameBwHistEq)  #detectPerson(frameI)
+            if bodyCount != 0:
+                frame = cv2.add(frame, frameBody)
+        if uppderBodyDetectEn is True:
+            frameUB, uBodyCount, uBodyRects = detectUppderBody(frameBwHistEq)
+            if uBodyCount != 0:
+                frame = cv2.add(frame, frameUB)
+        if faceDetectEn is True:
+            faceF, faceCount, faceRects = detectFace(frameBwHistEq)
+            if faceCount != 0:
+                frame = cv2.add(frame, faceF)
 
-    return frameBak, frame, t0, det, ts
+        print(bodyCount, uBodyCount, faceCount)
+    return frameI, frame, t0, det, ts, shapeOrig
 
 
 while True:
     while len(pending) > 0 and pending[0].ready():
-        frame, frameDraw, tt, detected, ts = pending.popleft().get()
+        frame, frameDraw, tt, detected, ts, origShape = pending.popleft().get()
+        frame = imutils.resize(frame, width=origShape[1])
+        frameDraw = imutils.resize(frameDraw, width=origShape[1])
         latency.update(clock() - tt)
         if detected > 0:
             # overlay the drawings
@@ -143,8 +158,21 @@ while True:
             frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
         # put the time on our frame
         cv2.putText(
-            frame, "{}".format(ts), (10, frame.shape[0] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 255), 1)
+            frame,
+            "{}".format(ts),
+            (11, frame.shape[0] - 9),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 0, 0),
+            lineType=cv2.LINE_AA)
+        cv2.putText(frame,
+                    "{}".format(ts),
+                    (10, frame.shape[0] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 0, 255),
+                    lineType=cv2.LINE_AA)
+
         if threadingEn is False:
             threadDis = 1
         else:
@@ -152,8 +180,10 @@ while True:
         # overlay some stats
         draw_str(frame, (20, 20), "threads:{:>13d}".format(threadDis))
         draw_str(frame, (20, 38),
-                 "latency:{:>14.1f}ms".format(latency.value * 1000))
+                 "resolution:{1:>12d}x{0:<6d}".format(*frameDraw.shape))
         draw_str(frame, (20, 56),
+                 "latency:{:>14.1f}ms".format(latency.value * 1000))
+        draw_str(frame, (20, 74),
                  "frame interval:{:>7.1f}ms  ({:<5.1f}fps)".format(
                      frame_interval.value * 1000, 1 / frame_interval.value))
         cv2.imshow('PiGuard', frame)
@@ -165,8 +195,9 @@ while True:
         frame_interval.update(t - last_frame_time)
         last_frame_time = t
         ts = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
-        task = pool.apply_async(processFrame,
-                                args=(frame.copy(), t, ts, rotation))
+        task = pool.apply_async(
+            processFrame,
+            args=(frame, t, ts, rotation, int(frame.shape[1] / 2)))
         pending.append(task)
 
     ch = cv2.waitKey(1)
@@ -177,9 +208,19 @@ while True:
     if ch == 65361:
         rotation += 90
         rotation %= 360
+    if ch == 49:
+        fullBodyDetectEn = not fullBodyDetectEn
+        print("Full body detection: {}".format(fullBodyDetectEn))
+    if ch == 50:
+        uppderBodyDetectEn = not uppderBodyDetectEn
+        print("Upper body detection: {}".format(uppderBodyDetectEn))
+    if ch == 51:
+        faceDetectEn = not faceDetectEn
+        print("Face detection: {}".format(faceDetectEn))
     # up arrow key
     if ch == 65362:
         contourThresh += 250
+        print("New contour threshold: {}".format(contourThresh))
     # right arrow key
     if ch == 65363:
         rotation -= 90
@@ -187,6 +228,7 @@ while True:
     # down arrow key
     if ch == 65364:
         contourThresh -= 250
+        print("New contour threshold: {}".format(contourThresh))
     # escape
     if (ch & 0xff) == 27:
         break
