@@ -13,9 +13,8 @@ from multiprocessing.pool import ThreadPool
 from collections import deque
 from common import clock, draw_str, StatValue
 
-
 dimm = (640,480)
-fps = 30
+fps = 15
 
 # first camera, with resolution specified above
 cap = cv2.VideoCapture(-1)
@@ -38,7 +37,7 @@ print "Updated FPS:\t\t{:.2f}".format(fpsNow)
 fgbg = cv2.createBackgroundSubtractorMOG2(200, 14)
 
 # encoded file object
-vidStreamName = abspath(join(os.getcwd(), '/home/jonathan/Documents/piguard/liveview/vidStream.avi'))
+vidStreamName = abspath(join(os.getcwd(), "/home/jonathan/Documents/piguard/liveview/vidStream.avi"))
 vidStream = cv2.VideoWriter(vidStreamName, cv2.VideoWriter_fourcc(*'XVID'), fps, dimm)
 
 # find the size to use for the gaussian blur
@@ -72,17 +71,18 @@ def writeRects(frame, frameRef):
         box = cv2.boxPoints(cv2.minAreaRect(c))
         box = np.int0(box)
         cv2.drawContours(frame, [box], 0, (0,0,255), 2)
-
     return frame
 
 
-def processFrame(frame, t0):
-    #rotate
-    frame = imutils.rotate(frame, angle=90)
-    # resize
-    # frame = imutils.resize(frame, width=500)
-    # blue
-    frame_blur = cv2.GaussianBlur(frame, blurSz, 0)
+def processFrame(frame, t0, rotateAng=False, newWidth=False):
+    if rotateAng is not False:
+        frame = imutils.rotate(frame, angle=rotateAng)
+    if newWidth is not False:
+        frame = imutils.resize(frame, width=newWidth)
+    
+    #downsample & blur
+    frame_blur = frame
+    cv2.pyrDown(frame, frame_blur)
     # bg sub
     fgmask = fgbg.apply(frame_blur)
     # put the time on our frame
@@ -95,10 +95,13 @@ def processFrame(frame, t0):
             (0,0,255),
             1
     )
-    return writeRects(frame, fgmask), t0
+    frame = writeRects(frame, fgmask)
+    return frame, t0
 
 
 threaded_mode = True
+
+cv2.namedWindow('PiGuard', cv2.WINDOW_NORMAL)
 
 threadN = mp.cpu_count()
 pool = ThreadPool(processes=threadN)
@@ -108,17 +111,18 @@ latency = StatValue()
 frame_interval = StatValue()
 last_frame_time = clock()
 
-fpsTimer = cvfps.cvTimer(length=100, target_fps=fps)
+fpsTimer = cvfps.cvTimer(length=50, target_fps=fps)
 
 while True:
     while len(pending) > 0 and pending[0].ready():
         res, t0 = pending.popleft().get()
         latency.update(clock() - t0)
         draw_str(res, (20, 20), "threaded:       {}".format(threaded_mode))
-        draw_str(res, (20, 40), "latency:        {:.1f}ms".format(latency.value*1000))
-        draw_str(res, (20, 60), "frame interval: {:.1f}ms".format(frame_interval.value*1000))
-        draw_str(res, (20, 80), "threads:        {}".format(threadN))
-        draw_str(res, (20, 100),"fps:            {:.2f}".format(fpsTimer.fps))
+        draw_str(res, (20, 40), "threads:        {}".format(threadN))
+        draw_str(res, (20, 60), "latency:        {:.1f}ms".format(latency.value*1000))
+        draw_str(res, (20, 80), "frame interval: {:.1f}ms".format(frame_interval.value*1000))
+        fpsTimer.fps
+        draw_str(res, (20, 100),"fps:            {:.2f}".format(fpsTimer.avg_fps))
         cv2.imshow('PiGuard', res)
 
     if len(pending) < threadN:
@@ -126,11 +130,10 @@ while True:
         t = clock()
         frame_interval.update(t - last_frame_time)
         last_frame_time = t
-
         if threaded_mode:
-            task = pool.apply_async(processFrame, args=(frame.copy(), t))
+            task = pool.apply_async(processFrame, args=(frame.copy(), t, 90))
         else:
-            task = DummyTask(processFrame(frame, t))
+            task = DummyTask(processFrame(frame, t, 90))
 
         pending.append(task)
 
@@ -139,6 +142,5 @@ while True:
         threaded_mode = not threaded_mode
     if ch == 27:
         break
-
 
 cv2.destroyAllWindows()
