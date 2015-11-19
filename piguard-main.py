@@ -11,12 +11,13 @@ from collections import deque
 from common import clock, draw_str, StatValue
 from peopledetect import detectPerson
 from facedetect import detectFace
+from upperbodydetect import detectUppderBody
 
 rez = (640, 480)
 fps = 10
-contourThresh = 3000
+contourThresh = 2500
 bgSubHist = 250
-bgSubThresh = 14
+bgSubThresh = 16
 rotation = 0
 
 # find out how many cameras are connected
@@ -32,11 +33,13 @@ print("--  {} audio/video USB device{} detected".format(len(devs), devsP))
 for dev in devs:
     print("--  USB device at {:04X}:{:04X}".format(dev.idVendor, dev.idProduct))
 
-# this selects the first camera found camera
-# cap = cv2.VideoCapture(-1)
 testbench_fn = abspath(join(dirname(realpath(__file__)),
                             "testbench_footage_001.mp4"))
-cap = cv2.VideoCapture(testbench_fn)
+
+# this selects the first camera found camera
+cap = cv2.VideoCapture(-1)
+# cap = cv2.VideoCapture(testbench_fn)
+
 if not cap.isOpened():
     print("Unable to connect with camera!")
 
@@ -104,8 +107,9 @@ def processFrame(frame, t0, ts, rotateAng=False, newWidth=False):
         frame = imutils.resize(frame, width=newWidth)
 
     frameBak = frame.copy()
-    #downsample & blur
+    # downsample & blur
     cv2.pyrDown(frame.copy(), frame)
+    # frame = cv2.pyrDown(frame.copy())
     # bg sub
     fgmask = fgbg.apply(frame)
     # get our frame outlines
@@ -114,11 +118,10 @@ def processFrame(frame, t0, ts, rotateAng=False, newWidth=False):
     # return immediately if there's no motion
     if det != 0:
         frame = cv2.add(frame, detectPerson(frameBak))
-
+        frame = cv2.add(frame, detectUppderBody(frameBak))
         faceF, faceCount, faceRects = detectFace(frameBak)
         if faceCount != 0:
             frame = cv2.add(frame, faceF)
-            print("{:d} faces detected").format(faceCount)
 
     return frameBak, frame, t0, det, ts
 
