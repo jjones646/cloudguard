@@ -23,12 +23,11 @@ rotation = 0
 devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10),
         usb.core.find(bDeviceClass=0xef)]
 devs = [x for x in devs if x is not None]
+devsP = ""
 if len(devs) == 0:
     print("No USB video devices found!")
 elif len(devs) > 1:
     devsP = "s"
-else:
-    devsP = ""
 print("--  {} audio/video USB device{} detected".format(len(devs), devsP))
 for dev in devs:
     print("--  USB device at {:04X}:{:04X}".format(dev.idVendor, dev.idProduct))
@@ -66,7 +65,6 @@ fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh)
 vidStream_fn = abspath(join(dirname(realpath(__file__)), "liveview/vidStream.avi"))
 vidStream = cv2.VideoWriter(vidStream_fn, cv2.VideoWriter_fourcc(*'XVID'), fps,
                             rez)
-
 # video window
 cv2.namedWindow('PiGuard')
 
