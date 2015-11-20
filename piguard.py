@@ -18,22 +18,19 @@ from pprint import pprint
 
 windowName = "PiGuard"
 rez = (640, 480)
-processingWidth = 320
 fps = 15
-bgSubHist = 200
-bgSubThresh = 14
 rotation = 0
+
+processingWidth = 320
+bgSubHist = 350
+bgSubThresh = 8
 
 faceDetectEn = True
 uppderBodyDetectEn = True
 fullBodyDetectEn = True
 
-# mpl = mp.log_to_stderr()
-# mpl.setLevel(logging.DEBUG)
-
 # find out how many cameras are connected
-devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10),
-        usb.core.find(bDeviceClass=0xef)]
+devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10), usb.core.find(bDeviceClass=0xef)]
 devs = [x for x in devs if x is not None]
 devsP = ""
 if len(devs) == 0:
@@ -44,12 +41,11 @@ print("--  {} audio/video USB device{} detected".format(len(devs), devsP))
 for dev in devs:
     print("--  USB device at {:04X}:{:04X}".format(dev.idVendor, dev.idProduct))
 
-testbench_fn = abspath(join(dirname(realpath(__file__)),
-                            "testbench_footage_003.mp4"))
+testbench_fn = abspath(join(dirname(realpath(__file__)), "testbench_footage_002.mp4"))
 
 # this selects the first camera found camera
-cap = cv2.VideoCapture(-1)
-# cap = cv2.VideoCapture(testbench_fn)
+# cap = cv2.VideoCapture(-1)
+cap = cv2.VideoCapture(testbench_fn)
 
 if not cap.isOpened():
     print("Unable to connect with camera!")
@@ -68,8 +64,7 @@ try:
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, rez[1])
 except:
     print("Unable to set resolution to {0}x{1}!".format(*rez))
-rez = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-       int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+rez = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 print("--  resolution: {0}x{1}".format(*rez))
 
 contourThresh = 2100 * (float(processingWidth) / rez[0])
@@ -85,17 +80,25 @@ def updateSubHist(x):
 def updatebgSubThresh(x):
     bgSubThresh = x
 
+
+def updateProcessingWidth(x):
+    processingWidth = x
+
 # trackbars for the window gui
 cv2.createTrackbar('Motion Hist.', windowName, 0, 800, updateSubHist)
 cv2.createTrackbar('Motion Thresh.', windowName, 0, 40, updatebgSubThresh)
+cv2.createTrackbar('Processing Width', windowName, 200, rez[1], updateProcessingWidth)
+
+cv2.setTrackbarPos('Motion Hist.', windowName, bgSubHist)
+cv2.setTrackbarPos('Motion Thresh.', windowName, bgSubThresh)
+cv2.setTrackbarPos('Processing Width', windowName, processingWidth)
 
 # background subtractor
-fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh)
+fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh, False)
 
 # encoded file object
 vidStream_fn = abspath(join(dirname(realpath(__file__)), "liveview/vidStream.avi"))
-vidStream = cv2.VideoWriter(vidStream_fn, cv2.VideoWriter_fourcc(*'XVID'), fps,
-                            rez)
+vidStream = cv2.VideoWriter(vidStream_fn, cv2.VideoWriter_fourcc(*'XVID'), fps, rez)
 
 threadingEn = True
 threadN = mp.cpu_count()
@@ -112,8 +115,7 @@ def drawFrame(frame, rects, thickness=1, color=(150, 150, 150)):
     dCount = 0
     frameFrames = np.zeros(frame.shape, np.uint8)
     # get contours
-    _, cnts, hierarchy = cv2.findContours(
-        rects.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, cnts, hierarchy = cv2.findContours(rects.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # loop over the contours
     for c in cnts:
         # if the contour is too small, ignore it
@@ -180,33 +182,19 @@ while True:
             roi = frame[0:sz[0], 0:sz[1]]
             frameMask = cv2.cvtColor(frameDraw, cv2.COLOR_BGR2GRAY)
             _, frameMask = cv2.threshold(frameMask, 10, 255, cv2.THRESH_BINARY)
-            frameBg = cv2.bitwise_and(roi,
-                                      roi,
-                                      mask=cv2.bitwise_not(frameMask))
+            frameBg = cv2.bitwise_and(roi, roi, mask=cv2.bitwise_not(frameMask))
             frameMaskFg = cv2.bitwise_and(frameDraw, frameDraw, mask=frameMask)
             frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
         # overlay a timestamp
-        draw_str(frame,
-                 (10, frame.shape[0] - 10),
-                 "{}".format(ts),
-                 fontFace=fontFace,
-                 scale=0.6,
-                 thickness=1,
-                 color=(120, 120, 255))
+        draw_str(frame, (10, frame.shape[0] - 10), "{}".format(ts), fontFace=fontFace, scale=0.6, thickness=1, color=(120, 120, 255))
         if threadingEn is False:
             threadDis = 1
         else:
             threadDis = threadN
         # overlay some stats
-        statStrings = ["threads: {:<d}".format(threadDis),
-                       "resolution: {1:>d}x{0:<d}".format(*frameDraw.shape),
-                       "latency: {:>6.1f}ms".format(latency.value * 1000),
-                       "period: {:>6.1f}ms".format(
-                           frame_interval.value * 1000),
-                       "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
+        statStrings = ["threads: {:<d}".format(threadDis), "resolution: {1:>d}x{0:<d}".format(*frameDraw.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
 
-        txtSz = cv2.getTextSize(statStrings[0], fontFace, fontScale,
-                                fontThickness)
+        txtSz = cv2.getTextSize(statStrings[0], fontFace, fontScale, fontThickness)
         xOffset = xBorder
         yOffset = txtSz[0][1] + yBorder
         xDelim = " | "
@@ -215,17 +203,11 @@ while True:
         while True:
             if xOffset != xBorder:
                 statStrings[j] = xDelim + statStrings[j]
-            txtSz = cv2.getTextSize(statStrings[j], fontFace, fontScale,
-                                    fontThickness)
+            txtSz = cv2.getTextSize(statStrings[j], fontFace, fontScale, fontThickness)
             txtSz = txtSz[0]
             xOffset += txtSz[0]
             if xOffset > (sz[1] - xBorder):
-                draw_str(frame,
-                         (xBorder, yOffset),
-                         tStr,
-                         fontFace=fontFace,
-                         scale=fontScale,
-                         thickness=fontThickness)
+                draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
                 yOffset += txtSz[1] + ySpacing
                 statStrings[j] = statStrings[j][len(xDelim):]
                 tStr = ""
@@ -236,16 +218,10 @@ while True:
             if j > len(statStrings) - 1:
                 break
 
-        draw_str(frame,
-                 (xBorder, yOffset),
-                 tStr,
-                 fontFace=fontFace,
-                 scale=fontScale,
-                 thickness=fontThickness)
-        # cv2.imshow(windowName, frame)
+        draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
+        cv2.imshow(windowName, frame)
 
-    if (threadingEn is True and len(pending) < threadN) or (
-            threadingEn is False and len(pending) == 0):
+    if (threadingEn is True and len(pending) < threadN) or (threadingEn is False and len(pending) == 0):
 
         grabbed, frame = cap.read()
         if not grabbed:
@@ -254,10 +230,14 @@ while True:
         frame_interval.update(t - last_frame_time)
         last_frame_time = t
         ts = datetime.datetime.utcnow().strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
-        task = pool.apply_async(
-            processFrame,
-            args=(frame, t, ts, rotation, processingWidth))
+        pWid = cv2.getTrackbarPos('Processing Width', windowName)
+        task = pool.apply_async(processFrame, args=(frame, t, ts, rotation, pWid))
         pending.append(task)
+
+    bgSh = cv2.getTrackbarPos('Motion Hist.', windowName)
+    bgSt = cv2.getTrackbarPos('Motion Thresh.', windowName)
+    fgbg.setHistory(bgSh)
+    fgbg.setVarThreshold(bgSt)
 
     ch = cv2.waitKey(1)
     # space

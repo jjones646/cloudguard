@@ -5,18 +5,11 @@ import numpy as np
 from os.path import *
 from common import clock, draw_str
 
-cascade_fn = abspath(join(dirname(realpath(__file__)),
-                          "haarcascades/haarcascade_frontalface_alt.xml"))
+cascade_fn = abspath(join(dirname(realpath(__file__)), "haarcascades/haarcascade_frontalface_alt.xml"))
 cascade = cv2.CascadeClassifier(cascade_fn)
 
-
 def detect(frame, cas, sf=1.3, mn=3, ms=(28, 35), mxs=(0, 0)):
-    rects = cas.detectMultiScale(frame,
-                                 scaleFactor=sf,
-                                 minNeighbors=mn,
-                                 minSize=ms,
-                                 maxSize=mxs,
-                                 flags=cv2.CASCADE_SCALE_IMAGE)
+    rects = cas.detectMultiScale(frame, scaleFactor=sf, minNeighbors=mn, minSize=ms, maxSize=mxs, flags=cv2.CASCADE_SCALE_IMAGE)
     if len(rects) == 0:
         return []
     rects[:, 2:] += rects[:, :2]
