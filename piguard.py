@@ -16,6 +16,7 @@ from upperbodydetect import detectUppderBody
 from fullbodydetect import detectBody
 from pprint import pprint
 
+windowName = "PiGuard"
 rez = (640, 480)
 processingWidth = 320
 fps = 15
@@ -27,8 +28,8 @@ faceDetectEn = True
 uppderBodyDetectEn = True
 fullBodyDetectEn = True
 
-mpl = mp.log_to_stderr()
-mpl.setLevel(logging.DEBUG)
+# mpl = mp.log_to_stderr()
+# mpl.setLevel(logging.DEBUG)
 
 # find out how many cameras are connected
 devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10),
@@ -73,6 +74,21 @@ print("--  resolution: {0}x{1}".format(*rez))
 
 contourThresh = 2100 * (float(processingWidth) / rez[0])
 
+# video window
+cv2.namedWindow(windowName)
+
+
+def updateSubHist(x):
+    bgSubHist = x
+
+
+def updatebgSubThresh(x):
+    bgSubThresh = x
+
+# trackbars for the window gui
+cv2.createTrackbar('Motion Hist.', windowName, 0, 800, updateSubHist)
+cv2.createTrackbar('Motion Thresh.', windowName, 0, 40, updatebgSubThresh)
+
 # background subtractor
 fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh)
 
@@ -80,8 +96,6 @@ fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh)
 vidStream_fn = abspath(join(dirname(realpath(__file__)), "liveview/vidStream.avi"))
 vidStream = cv2.VideoWriter(vidStream_fn, cv2.VideoWriter_fourcc(*'XVID'), fps,
                             rez)
-# video window
-cv2.namedWindow('PiGuard')
 
 threadingEn = True
 threadN = mp.cpu_count()
@@ -228,7 +242,7 @@ while True:
                  fontFace=fontFace,
                  scale=fontScale,
                  thickness=fontThickness)
-        cv2.imshow('PiGuard', frame)
+        # cv2.imshow(windowName, frame)
 
     if (threadingEn is True and len(pending) < threadN) or (
             threadingEn is False and len(pending) == 0):
