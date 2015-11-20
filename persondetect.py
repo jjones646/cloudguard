@@ -33,8 +33,8 @@ def normalizeFrame(frame):
 
 def detectUppderBody(frame):
     frame, frameFrames = normalizeFrame(frame)
-    rects = detect(frame, cascade[0])
-    drawFrame(frameFrames, rects, thickness=3)
+    rects = detect(frame, cascade[0], sf=1.15, mn=2)
+    drawFrame(frameFrames, rects, thickness=3, color=(130, 130, 255))
     return frameFrames, rects
 
 

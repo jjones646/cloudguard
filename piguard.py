@@ -42,8 +42,8 @@ for dev in devs:
 testbench_fn = abspath(join(dirname(realpath(__file__)), "testbench_footage_002.mp4"))
 
 # this selects the first camera found camera
-# cap = cv2.VideoCapture(-1)
-cap = cv2.VideoCapture(testbench_fn)
+cap = cv2.VideoCapture(-1)
+# cap = cv2.VideoCapture(testbench_fn)
 
 if not cap.isOpened():
     print("Unable to connect with camera!")
@@ -148,10 +148,10 @@ def processFrame(frameI, t0, ts, rotateAng=False, newWidth=False):
             if len(bodyRects) > 0:
                 frame = cv2.add(frame, frameBody)
 
-        if uppderBodyDetectEn:
-            frameUBody, uBodyRects = detectUppderBody(frameBw)
-            if len(uBodyRects) > 0:
-                frame = cv2.add(frame, frameUBody)
+        # if uppderBodyDetectEn:
+        #     frameUBody, uBodyRects = detectUppderBody(frameBw)
+        #     if len(uBodyRects) > 0:
+        #         frame = cv2.add(frame, frameUBody)
 
         if faceDetectEn:
             frameFace, faceRects = detectFace(frameBw)
