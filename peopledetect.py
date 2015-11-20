@@ -25,9 +25,9 @@ def detectPerson(frame):
     found_filtered = []
     frameFrames = np.zeros(frame.shape, np.uint8)
     found, w = hog.detectMultiScale(frame,
-                                    winStride=(16, 16),
-                                    padding=(20, 15),
-                                    scale=1.05)
+                                    winStride=(12, 12),
+                                    padding=(15, 5),
+                                    scale=1.02)
 
     for ri, r in enumerate(found):
         for qi, q in enumerate(found):
@@ -38,4 +38,4 @@ def detectPerson(frame):
 
     drawFrame(frameFrames, found, color=(255, 127, 127))
     drawFrame(frameFrames, found_filtered, thickness=3)
-    return frameFrames, len(found_filtered), found_filtered
+    return frameFrames, found_filtered

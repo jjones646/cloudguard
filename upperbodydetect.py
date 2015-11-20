@@ -29,7 +29,10 @@ def drawFrame(frame, rects, thickness=1, color=(255, 200, 200)):
 
 def detectUppderBody(frame):
     frameFrames = np.zeros(frame.shape, np.uint8)
-    frameBw = cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+    if len(frame.shape) > 2:
+        frame = cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+    else:
+        frameFrames = cv2.cvtColor(frameFrames, cv2.COLOR_GRAY2BGR)
     rects = detect(frame, cascade)
     drawFrame(frameFrames, rects, thickness=3)
-    return frameFrames, len(rects), rects
+    return frameFrames, rects
