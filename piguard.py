@@ -11,9 +11,7 @@ from collections import deque
 # local imports
 from common import clock, draw_str, StatValue
 from peopledetect import detectPerson
-from facedetect import detectFace
-from upperbodydetect import detectUppderBody
-from fullbodydetect import detectBody
+from persondetect import detectUppderBody, detectFace
 from pprint import pprint
 
 windowName = "PiGuard"
