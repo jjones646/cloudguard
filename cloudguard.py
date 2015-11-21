@@ -15,11 +15,10 @@ from collections import deque
 from common import clock, draw_str, StatValue, getsize
 from persondetect import detectPerson
 from facedetect import detectFace, drawFrame
-# from pprint import pprint
 
 windowName = "PiGuard"
 rez = (640, 480)
-fps = 15
+fps = 10
 rotation = 0
 
 processingWidth = 240
@@ -61,20 +60,23 @@ if len(devs) == 0:
 elif len(devs) > 1:
     devsP = "s"
 print("--  {} audio/video USB device{} detected".format(len(devs), devsP))
-for dev in devs:
-    print("--  USB device at {:04X}:{:04X}".format(dev.idVendor, dev.idProduct))
+for d in devs:
+    print("--  USB device found at {:04X}:{:04X}".format(d.idVendor, d.idProduct))
 
 # this selects the first camera found camera
 cap = cv2.VideoCapture(-1)
 
 if not cap.isOpened():
     print("Unable to connect with camera!")
+    sys.exit(2)
 
 # set the framerate as specified at the top
 try:
-    cap.set(cv2.CAP_PROP_FPS, fps)
+    pass
+    # cap.set(cv2.CAP_PROP_FPS, fps)
 except:
     print("Unable to set framerate to {:.1f}!".format(fps))
+
 fps = cap.get(cv2.CAP_PROP_FPS)
 print("--  framerate: {}".format(fps))
 
@@ -84,8 +86,10 @@ try:
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, rez[1])
 except:
     print("Unable to set resolution to {0}x{1}!".format(*rez))
+
 rez = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 print("--  resolution: {0}x{1}".format(*rez))
+
 contourThresh = 2100 * (float(processingWidth) / rez[0])
 
 # video window
@@ -126,15 +130,19 @@ frame_interval = StatValue()
 last_frame_time = clock()
 
 
-def grabFnDate():
-    return str(datetime.now()).replace(" ", "").replace(":", "_").replace("-", "_").replace(".", "_")
+def grabFnDate(utc=False):
+    if utc is True:
+        ts = datetime.utcnow()
+    else:
+        ts = datetime.now()
+    return str(ts).replace(":", "_").replace(" ", "-").replace(".", "_")
 
 
-def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
-    pts = []
-    frameF = np.zeros(frame.shape, np.uint8)
+def getMotions(f, fMask, thickness=1, color=(170, 170, 170)):
+    rectsMot = []
+    fRects = np.zeros(f.shape, np.uint8)
     # get contours
-    _, cnts, hierarchy = cv2.findContours(rects.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, cnts, hierarchy = cv2.findContours(fMask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # loop over the contours
     for c in cnts:
         # if the contour is too small, ignore it
@@ -142,28 +150,29 @@ def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
             continue
         box = cv2.boxPoints(cv2.minAreaRect(c))
         box = np.int0(box)
-        cv2.drawContours(frameF, [box], 0, color, thickness)
-        pts.append(cv2.boundingRect(c))
-    return frameF, pts
+        cv2.drawContours(fRects, [box], 0, color, thickness)
+        rectsMot.append(cv2.boundingRect(c))
+    return fRects, rectsMot
 
 
 def processResponse(q):
     s3 = boto3.resource('s3')
-    upWait = 2.5
+    upWait = 1.5
     lastUp = clock()
+    biggestCropArea = 0
     while cap.isOpened():
         # receive the data
         data = q.get()
-        f = data["frame"]
-        bxScl = data["salRects"]
-        szScl = data["szScaled"]
+        f = data["f"]
+        rectsSal = data["rectsSal"]
+        szScaled = data["szScaled"]
         ts = data["ts"]
         sz = getsize(f)
-        rr = (float(sz[0]) / szScl[0], float(sz[1]) / szScl[1])
+        rr = (float(sz[0]) / szScaled[0], float(sz[1]) / szScaled[1])
         # rescale the rectangular dimensions to our original resolution
         bx = []
-        for x1, y1, x2, y2 in bxScl:
-            tmp = (x1 * rr[0], y1 * rr[1], x2 * rr[0], y2 * rr[1])
+        for x, y, w, h in rectsSal:
+            tmp = (x * rr[0], y * rr[1], w * rr[0], h * rr[1])
             bx.append(tuple(int(x) for x in tmp))
 
         if saveCrops and len(bx) > 0:
@@ -172,50 +181,66 @@ def processResponse(q):
             yy = tuple((min([min(x[1], x[1] + x[3]) for x in bx]), max([max(x[1], x[1] + x[3]) for x in bx])))
             if abs(yy[0] - yy[1]) > 0 and abs(xx[0] - xx[1]) > 0:
                 fMask = f[min(yy):max(yy), min(xx):max(xx)]
+                cropArea = (max(xx) - min(xx)) * (max(yy) - min(yy))
                 fn = rootP + "_regions.jpg"
-                if saveServer and (clock() - lastUp) > upWait:
-                    res, img = cv2.imencode(".jpg", fMask, [int(cv2.IMWRITE_JPEG_QUALITY), 55])
-                    if res:
-                        img = img.tostring()
-                        print("uploading frame to s3: {}".format(basename(fn)))
-                        print("-- time since last upload: {}s".format(clock() - lastUp))
-                        s3.Object("cloudguard-in", basename(fn)).put(Body=img, Metadata={"Content-Type": "Image/jpeg"})
-                        lastUp = clock()
+                if (clock() - lastUp) > upWait:
+                    biggestCropArea = 0
+                # always send the frames that contain detected people/faces
+                if (cropArea > biggestCropArea) or data["numBodies"] > 0 or data["numFaces"] > 0:
+                    biggestCropArea = cropArea
+                    if saveServer:
+                        res, img = cv2.imencode(".jpg", fMask, [int(cv2.IMWRITE_JPEG_QUALITY), 55])
+                        if res:
+                            img = img.tostring()
+                            print("uploading frame to s3: {}".format(basename(fn)))
+                            print("-- time since last upload: {}s".format(clock() - lastUp))
+                            s3.Object("cloudguard-in",
+                                      basename(fn)).put(Body=img,
+                                                        Metadata={"Content-Type": "Image/jpeg",
+                                                                  "Number-Detected-Motion": str(data["numMotion"]),
+                                                                  "Number-Detected-Bodies": str(data["numBodies"]),
+                                                                  "Number-Detected-Faces": str(data["numFaces"]),
+                                                                  "Captured-Timestamp": str(ts),
+                                                                  "Captured-Timestamp-Timezone": "UTC"})
+                            lastUp = clock()
 
 
-def processMotionFrame(q, frameI, tick, ts, mfa=False, rotateAng=False, newWidth=False, gBlur=(9, 9)):
-    salRects = []
-    frameRaw = frameI.copy()
+def processMotionFrame(q, f, tick, ts, mfa=False, rotateAng=False, width=False, gBlur=(9, 9)):
+    rectsSal = []
+    fCopy = f.copy()
     if rotateAng is not False:
-        frameI = imutils.rotate(frameI, angle=rotateAng)
-    if newWidth is not False:
-        frameI = imutils.resize(frameI, width=newWidth)
-    # blur
-    frameBlur = cv2.GaussianBlur(frameI, gBlur, 0)
-    # bg sub
-    fgmask = fgbg.apply(frameBlur)
+        f = imutils.rotate(f, angle=rotateAng)
+    if width is not False:
+        f = imutils.resize(f, width=width)
+    # blur & bg sub
+    fgmask = fgbg.apply(cv2.GaussianBlur(f, gBlur, 0))
     # get our frame outlines
-    frameRects, rectsMot = getMotions(frameI, fgmask, thickness=1)
+    fRects, rectsMot = getMotions(f, fgmask, thickness=1)
     # return immediately if there's no motion
-    salRects.extend(rectsMot)
+    rectsSal.extend(rectsMot)
+    numMotion = len(rectsMot)
     # if True:
-    if len(rectsMot) > 0 or mfa is True:
-        frameBw = cv2.equalizeHist(cv2.cvtColor(frameI, cv2.COLOR_BGR2GRAY))
+    if numMotion > 0 or mfa is True:
+        numBodies = 0
+        numFaces = 0
+        fBw = cv2.equalizeHist(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
         if fullBodyDetectEn:
-            frameBody, rectsBody = detectPerson(frameI)
+            fBody, rectsBody = detectPerson(f, color=(255, 0, 0))
             if len(rectsBody) > 0:
-                frameRects = cv2.add(frameRects, frameBody)
-                salRects.extend(rectsBody)
+                fRects = cv2.add(fRects, fBody)
+                numBodies = len(rectsBody)
+                rectsSal.extend(rectsBody)
 
         if faceDetectEn:
-            frameFace, rectsFace = detectFace(frameBw)
+            fFace, rectsFace = detectFace(fBw, color=(0, 255, 0))
             if len(rectsFace) > 0:
-                frameRects = cv2.add(frameRects, frameFace)
-                salRects.extend(rectsFace)
+                fRects = cv2.add(fRects, fFace)
+                numFaces = len(rectsFace)
+                rectsSal.extend(rectsFace)
 
-        frameRects = imutils.resize(frameRects, width=frameRaw.shape[1])
-        q.put({"frame": frameRaw.copy(), "ts": ts, "salRects": salRects, "szScaled": getsize(frameI)})
-    return frameRaw, frameRects, tick, ts, salRects
+        fRects = imutils.resize(fRects, width=fCopy.shape[1])
+        q.put({"f": fCopy.copy(), "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
+    return fCopy, fRects, rectsSal, tick, ts
 
 
 if __name__ == '__main__':
@@ -228,17 +253,17 @@ if __name__ == '__main__':
     vW = None
     while True:
         while len(pending) > 0 and pending[0].ready():
-            frame, frameRects, tick, ts, salPts = pending.popleft().get()
+            frame, fRects, rectsSal, tick, ts = pending.popleft().get()
             latency.update(clock() - tick)
             # overlay the rectangles if motion was detected
-            if len(salPts) > 0:
+            if len(rectsSal) > 0:
                 LMT = ts
                 sz = frame.shape
                 roi = frame[0:sz[0], 0:sz[1]]
-                frameMask = cv2.cvtColor(frameRects, cv2.COLOR_BGR2GRAY)
+                frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)
                 _, frameMask = cv2.threshold(frameMask, 10, 255, cv2.THRESH_BINARY)
                 frameBg = cv2.bitwise_and(roi, roi, mask=cv2.bitwise_not(frameMask))
-                frameMaskFg = cv2.bitwise_and(frameRects, frameRects, mask=frameMask)
+                frameMaskFg = cv2.bitwise_and(fRects, fRects, mask=frameMask)
                 frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
 
             # overlay a timestamp
@@ -249,7 +274,7 @@ if __name__ == '__main__':
             else:
                 threadDis = threadN
             # overlay some stats
-            statStrings = ["threads: {:<d}".format(threadDis), "resolution: {1:>d}x{0:<d}".format(*frameRects.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value), "mfa: {}".format(MFA)]
+            statStrings = ["threads: {:<d}".format(threadDis), "res: {1:>d}x{0:<d}".format(*fRects.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
 
             txtSz = cv2.getTextSize(statStrings[0], **fontParams)
             xOffset = xBorder
