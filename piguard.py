@@ -1,18 +1,20 @@
-import os, sys, time, datetime
+import os, sys, time
 import imutils
 import cv2
 import usb.core, usb.util
 import logging
 import multiprocessing as mp
 import numpy as np
+from datetime import *
 from os.path import *
+from multiprocessing import Process, Queue
 from multiprocessing.pool import ThreadPool
 from collections import deque
 # local imports
 from common import clock, draw_str, StatValue
-from peopledetect import detectPerson
-from persondetect import detectUppderBody, detectFace, drawFrame
-from pprint import pprint
+from persondetect import detectPerson
+from facedetect import detectFace, drawFrame
+# from pprint import pprint
 
 windowName = "PiGuard"
 rez = (640, 480)
@@ -23,9 +25,22 @@ processingWidth = 320
 bgSubHist = 350
 bgSubThresh = 8
 
-faceDetectEn = True
-uppderBodyDetectEn = True
-fullBodyDetectEn = True
+faceDetectEn = False
+fullBodyDetectEn = False
+
+# params for the text overlaid on the output feed
+fontFace = cv2.FONT_HERSHEY_SIMPLEX
+fontScale = 0.45
+fontThickness = 1
+xBorder = 20
+yBorder = 20
+ySpacing = 10
+
+# Last Motion Timestamp
+LMT = datetime.utcnow()
+
+# Motion Frame Active
+MFA = False
 
 # find out how many cameras are connected
 devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10), usb.core.find(bDeviceClass=0xef)]
@@ -86,7 +101,7 @@ def updateProcessingWidth(x):
 cv2.createTrackbar('Motion Hist.', windowName, 0, 800, updateSubHist)
 cv2.createTrackbar('Motion Thresh.', windowName, 0, 40, updatebgSubThresh)
 cv2.createTrackbar('Processing Width', windowName, 200, rez[1], updateProcessingWidth)
-
+# set initial positions
 cv2.setTrackbarPos('Motion Hist.', windowName, bgSubHist)
 cv2.setTrackbarPos('Motion Thresh.', windowName, bgSubThresh)
 cv2.setTrackbarPos('Processing Width', windowName, processingWidth)
@@ -125,157 +140,156 @@ def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
         pts.append(cv2.boundingRect(c))
     return frameF, pts
 
-# def processDepthFrame(frameI, )
 
-def processMotionFrame(frameI, t0, ts, rotateAng=False, newWidth=False):
-    origSz = frameI.shape
-    frameRet = frameI.copy()
+def processResponse(q):
+    while True:
+        print(type(q.get()))
+
+
+def processMotionFrame(q, frameI, tick, ts, rotateAng=False, newWidth=False, gBlur=(9, 9)):
+    salRects = []
+    frameRaw = frameI.copy()
     if rotateAng is not False:
         frameI = imutils.rotate(frameI, angle=rotateAng)
     if newWidth is not False:
         frameI = imutils.resize(frameI, width=newWidth)
     # blur
-    frameBlur = cv2.GaussianBlur(frameI, (9, 9), 0)
+    frameBlur = cv2.GaussianBlur(frameI, gBlur, 0)
     # bg sub
     fgmask = fgbg.apply(frameBlur)
     # get our frame outlines
-    frame, detRects = getMotions(frameI, fgmask, thickness=1)
+    frameRects, rectsMot = getMotions(frameI, fgmask, thickness=1)
     # return immediately if there's no motion
-    interestFrames = []
-    if True:
-        # if len(findContoursdetRects) = 0:
+    salRects.extend(rectsMot)
+    # if True:
+    if len(rectsMot) > 0:
         frameBw = cv2.equalizeHist(cv2.cvtColor(frameI, cv2.COLOR_BGR2GRAY))
-        interestFrames.extend(detRects)
         if fullBodyDetectEn:
-            frameBody, bodyRects = detectPerson(frameI)
-            if len(bodyRects) > 0:
-                frame = cv2.add(frame, frameBody)
-                interestFrames.extend(bodyRects)
+            frameBody, rectsBody = detectPerson(frameI)
+            if len(rectsBody) > 0:
+                frameRects = cv2.add(frameRects, frameBody)
+                salRects.extend(rectsBody)
 
         if faceDetectEn:
-            frameFace, faceRects = detectFace(frameBw)
-            if len(faceRects) > 0:
-                frame = cv2.add(frame, frameFace)
-                interestFrames.extend(faceRects)
+            frameFace, rectsFace = detectFace(frameBw)
+            if len(rectsFace) > 0:
+                frameRects = cv2.add(frameRects, frameFace)
+                salRects.extend(rectsFace)
 
-    frameP = frame.copy()
-    frame = imutils.resize(frame, width=origSz[1])
-    return frameRet, frame, t0, ts, interestFrames, frameP
+        frameRects = imutils.resize(frameRects, width=frameRaw.shape[1])
+        LMT = ts
+        q.put([frameRaw, ts, salRects])
+    else:
+        frameRects = None
+    return frameRaw, frameRects, tick, ts, salRects
 
-# params for the text overlaid on the output feed
-fontFace = cv2.FONT_HERSHEY_SIMPLEX
-fontScale = 0.45
-fontThickness = 1
-xBorder = 20
-yBorder = 20
-ySpacing = 10
 
-while True:
-    while len(pending) > 0 and pending[0].ready():
-        frame, frameDraw, tt, ts, detFrames, frameP = pending.popleft().get()
-        latency.update(clock() - tt)
-        sz = frame.shape
-        if len(detFrames) > 0:
-            resz = frameP.shape
-            bBox = (min([x[1] for x in detFrames]), min([x[0] for x in detFrames]), max([x[3] for x in detFrames]), max([x[2] for x in detFrames]))
-            frameBounding = np.zeros(frameP.shape, np.uint8)
-            cv2.rectangle(frameBounding, (bBox[0], bBox[1]), (bBox[2], bBox[3]), (0, 0, 255), thickness=4)
-            frameBounding = imutils.resize(frameBounding, width=frame.shape[1])
-            frame = cv2.add(frame, frameBounding)
-            # overlay the drawings
-            roi = frame[0:sz[0], 0:sz[1]]
-            frameMask = cv2.cvtColor(frameDraw, cv2.COLOR_BGR2GRAY)
-            _, frameMask = cv2.threshold(frameMask, 10, 255, cv2.THRESH_BINARY)
-            frameBg = cv2.bitwise_and(roi, roi, mask=cv2.bitwise_not(frameMask))
-            frameMaskFg = cv2.bitwise_and(frameDraw, frameDraw, mask=frameMask)
-            frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
+if __name__ == '__main__':
+    q = Queue()
+    p = Process(target=processResponse, args=(q, )).start()
 
-        # overlay a timestamp
-        draw_str(frame, (10, frame.shape[0] - 10), "{}".format(ts), fontFace=fontFace, scale=0.6, thickness=1, color=(120, 120, 255))
-        if threadingEn is False:
-            threadDis = 1
-        else:
-            threadDis = threadN
-        # overlay some stats
-        statStrings = ["threads: {:<d}".format(threadDis), "resolution: {1:>d}x{0:<d}".format(*frameDraw.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
+    while True:
+        while len(pending) > 0 and pending[0].ready():
+            frame, frameRects, tt, ts, salPts = pending.popleft().get()
+            latency.update(clock() - tt)
+            # overlay the rectangles if motion was detected
+            if len(salPts) > 0 and frameRects is not None:
+                sz = frame.shape
+                roi = frame[0:sz[0], 0:sz[1]]
+                frameMask = cv2.cvtColor(frameRects, cv2.COLOR_BGR2GRAY)
+                _, frameMask = cv2.threshold(frameMask, 10, 255, cv2.THRESH_BINARY)
+                frameBg = cv2.bitwise_and(roi, roi, mask=cv2.bitwise_not(frameMask))
+                frameMaskFg = cv2.bitwise_and(frameRects, frameRects, mask=frameMask)
+                frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
 
-        txtSz = cv2.getTextSize(statStrings[0], fontFace, fontScale, fontThickness)
-        xOffset = xBorder
-        yOffset = txtSz[0][1] + yBorder
-        xDelim = " | "
-        tStr = ""
-        j = 0
-        while True:
-            if xOffset != xBorder:
-                statStrings[j] = xDelim + statStrings[j]
-            txtSz = cv2.getTextSize(statStrings[j], fontFace, fontScale, fontThickness)
-            txtSz = txtSz[0]
-            xOffset += txtSz[0]
-            if xOffset > (sz[1] - xBorder):
-                draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
-                yOffset += txtSz[1] + ySpacing
-                statStrings[j] = statStrings[j][len(xDelim):]
-                tStr = ""
-                xOffset = xBorder
+            # overlay a timestamp
+            draw_str(frame, (10, frame.shape[0] - 10), "{}".format(ts), fontFace=fontFace, scale=0.6, thickness=1, color=(120, 120, 255))
+            if threadingEn is False:
+                threadDis = 1
             else:
-                tStr += statStrings[j]
-                j += 1
-            if j > len(statStrings) - 1:
+                threadDis = threadN
+            # overlay some stats
+            statStrings = ["threads: {:<d}".format(threadDis), "resolution: {1:>d}x{0:<d}".format(*frameRects.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
+
+            txtSz = cv2.getTextSize(statStrings[0], fontFace, fontScale, fontThickness)
+            xOffset = xBorder
+            yOffset = txtSz[0][1] + yBorder
+            xDelim = " | "
+            tStr = ""
+            j = 0
+            while True:
+                if xOffset != xBorder:
+                    statStrings[j] = xDelim + statStrings[j]
+                txtSz = cv2.getTextSize(statStrings[j], fontFace, fontScale, fontThickness)
+                txtSz = txtSz[0]
+                xOffset += txtSz[0]
+                if xOffset > (sz[1] - xBorder):
+                    draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
+                    yOffset += txtSz[1] + ySpacing
+                    statStrings[j] = statStrings[j][len(xDelim):]
+                    tStr = ""
+                    xOffset = xBorder
+                else:
+                    tStr += statStrings[j]
+                    j += 1
+                if j > len(statStrings) - 1:
+                    break
+
+            draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
+            # update the window
+            cv2.imshow(windowName, frame)
+
+        if (threadingEn is True and len(pending) < threadN) or (threadingEn is False and len(pending) == 0):
+            grabbed, frame = cap.read()
+            if not grabbed:
                 break
+            t = clock()
+            frame_interval.update(t - last_frame_time)
+            last_frame_time = t
+            ts = datetime.utcnow().strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
+            pWid = cv2.getTrackbarPos('Processing Width', windowName)
+            task = pool.apply_async(processMotionFrame, args=(q, frame, t, ts, rotation, pWid))
+            pending.append(task)
 
-        draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
-        cv2.imshow(windowName, frame)
+        # refresh the background subtraction parameters
+        bgSh = cv2.getTrackbarPos('Motion Hist.', windowName)
+        bgSt = cv2.getTrackbarPos('Motion Thresh.', windowName)
+        fgbg.setHistory(bgSh)
+        fgbg.setVarThreshold(bgSt)
 
-    if (threadingEn is True and len(pending) < threadN) or (threadingEn is False and len(pending) == 0):
-
-        grabbed, frame = cap.read()
-        if not grabbed:
+        ch = cv2.waitKey(1)
+        # space
+        if (ch & 0xff) == ord(' '):
+            threadingEn = not threadingEn
+        # left arrow key
+        if ch == 65361:
+            rotation -= 90
+            rotation %= 360
+        if ch == 49:
+            fullBodyDetectEn = not fullBodyDetectEn
+            print("Full body detection: {}".format(fullBodyDetectEn))
+        if ch == 50:
+            uppderBodyDetectEn = not uppderBodyDetectEn
+            print("Upper body detection: {}".format(uppderBodyDetectEn))
+        if ch == 51:
+            faceDetectEn = not faceDetectEn
+            print("Face detection: {}".format(faceDetectEn))
+        # up arrow key
+        if ch == 65362:
+            contourThresh += 250
+            print("New contour threshold: {}".format(contourThresh))
+        # right arrow key
+        if ch == 65363:
+            rotation += 90
+            rotation %= 360
+        # down arrow key
+        if ch == 65364:
+            contourThresh -= 250
+            print("New contour threshold: {}".format(contourThresh))
+        # escape
+        if (ch & 0xff) == 27:
             break
-        t = clock()
-        frame_interval.update(t - last_frame_time)
-        last_frame_time = t
-        ts = datetime.datetime.utcnow().strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
-        pWid = cv2.getTrackbarPos('Processing Width', windowName)
-        task = pool.apply_async(processMotionFrame, args=(frame, t, ts, rotation, pWid))
-        pending.append(task)
 
-    bgSh = cv2.getTrackbarPos('Motion Hist.', windowName)
-    bgSt = cv2.getTrackbarPos('Motion Thresh.', windowName)
-    fgbg.setHistory(bgSh)
-    fgbg.setVarThreshold(bgSt)
-
-    ch = cv2.waitKey(1)
-    # space
-    if (ch & 0xff) == ord(' '):
-        threadingEn = not threadingEn
-    # left arrow key
-    if ch == 65361:
-        rotation -= 90
-        rotation %= 360
-    if ch == 49:
-        fullBodyDetectEn = not fullBodyDetectEn
-        print("Full body detection: {}".format(fullBodyDetectEn))
-    if ch == 50:
-        uppderBodyDetectEn = not uppderBodyDetectEn
-        print("Upper body detection: {}".format(uppderBodyDetectEn))
-    if ch == 51:
-        faceDetectEn = not faceDetectEn
-        print("Face detection: {}".format(faceDetectEn))
-    # up arrow key
-    if ch == 65362:
-        contourThresh += 250
-        print("New contour threshold: {}".format(contourThresh))
-    # right arrow key
-    if ch == 65363:
-        rotation += 90
-        rotation %= 360
-    # down arrow key
-    if ch == 65364:
-        contourThresh -= 250
-        print("New contour threshold: {}".format(contourThresh))
-    # escape
-    if (ch & 0xff) == 27:
-        break
-
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
+    p.terminate()
