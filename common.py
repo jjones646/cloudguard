@@ -19,8 +19,7 @@ import os
 import itertools as it
 from contextlib import contextmanager
 
-image_extensions = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm',
-                    '.pgm', '.ppm']
+image_extensions = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
 
 
 class Bunch(object):
@@ -80,38 +79,17 @@ def lookat(eye, target, up=(0, 0, 1)):
 
 def mtx2rvec(R):
     w, u, vt = cv2.SVDecomp(R - np.eye(3))
-    p = vt[0] + u[:, 0] * w[0]  # same as np.dot(R, vt[0])
+    p = vt[0] + u[:, 0] * w[0] # same as np.dot(R, vt[0])
     c = np.dot(vt[0], p)
     s = np.dot(vt[1], p)
     axis = np.cross(vt[0], vt[1])
     return axis * np.arctan2(s, c)
 
 
-def draw_str(dst,
-             target,
-             s,
-             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-             scale=0.5,
-             color=(255, 255, 255),
-             bgcolor=(0, 0, 0),
-             thickness=1):
+def draw_str(dst, target, s, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255), bgcolor=(0, 0, 0), thickness=1):
     x, y = target
-    cv2.putText(dst,
-                s,
-                (x + 1, y + 1),
-                fontFace,
-                scale,
-                bgcolor,
-                thickness=thickness + 1,
-                lineType=cv2.LINE_AA)
-    cv2.putText(dst,
-                s,
-                (x, y),
-                fontFace,
-                scale,
-                color,
-                thickness=thickness,
-                lineType=cv2.LINE_AA)
+    cv2.putText(dst, s, (x + 1, y + 1), fontFace, fontScale, bgcolor, thickness=thickness + 1, lineType=cv2.LINE_AA)
+    cv2.putText(dst, s, (x, y), fontFace, fontScale, color, thickness=thickness, lineType=cv2.LINE_AA)
 
 
 class Sketcher:
@@ -142,14 +120,7 @@ class Sketcher:
             self.show()
 
 # palette data from matplotlib/_cm.py
-_jet_data = {
-    'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1), (1, 0.5, 0.5)
-            ),
-    'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1),
-              (0.91, 0, 0), (1, 0, 0)),
-    'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0),
-             (1, 0, 0))
-}
+_jet_data = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1), (1, 0.5, 0.5)), 'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1), (0.91, 0, 0), (1, 0, 0)), 'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0), (1, 0, 0))}
 
 cmap_data = {'jet': _jet_data}
 
@@ -210,7 +181,7 @@ class RectSelector:
         self.drag_rect = None
 
     def onmouse(self, event, x, y, flags, param):
-        x, y = np.int16([x, y])  # BUG
+        x, y = np.int16([x, y]) # BUG
         if event == cv2.EVENT_LBUTTONDOWN:
             self.drag_start = (x, y)
         if self.drag_start:

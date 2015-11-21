@@ -5,7 +5,8 @@ import usb.core, usb.util
 import logging
 import multiprocessing as mp
 import numpy as np
-from datetime import *
+import boto3
+from datetime import datetime, timedelta
 from os.path import *
 from multiprocessing import Process, Queue
 from multiprocessing.pool import ThreadPool
@@ -21,26 +22,34 @@ rez = (640, 480)
 fps = 15
 rotation = 0
 
-processingWidth = 320
+processingWidth = 240
 bgSubHist = 350
-bgSubThresh = 8
+bgSubThresh = 10
 
 faceDetectEn = True
-fullBodyDetectEn = False
+fullBodyDetectEn = True
+saveServer = True
+saveCrops = saveServer
 
 # params for the text overlaid on the output feed
-fontFace = cv2.FONT_HERSHEY_SIMPLEX
-fontScale = 0.45
-fontThickness = 1
 xBorder = 20
 yBorder = 20
 ySpacing = 10
 
+fontParams = dict(fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.45, thickness=1)
+sDir = abspath(dirname(realpath(__file__)))
+vsDir = join(sDir, "vid-streams")
+testbench_fn = join(sDir, "testbench_footage_003.mp4")
+cap = cv2.VideoCapture(testbench_fn)
+
 # Last Motion Timestamp
 LMT = datetime.utcnow()
 
-# Motion Frame Active
+# Motion Frame Active - starts as false
 MFA = False
+
+# timeout for the LMT (seconds)
+lmtTo = timedelta(seconds=5)
 
 # find out how many cameras are connected
 devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10), usb.core.find(bDeviceClass=0xef)]
@@ -48,17 +57,15 @@ devs = [x for x in devs if x is not None]
 devsP = ""
 if len(devs) == 0:
     print("No USB video devices found!")
+    sys.exit(1)
 elif len(devs) > 1:
     devsP = "s"
 print("--  {} audio/video USB device{} detected".format(len(devs), devsP))
 for dev in devs:
     print("--  USB device at {:04X}:{:04X}".format(dev.idVendor, dev.idProduct))
 
-testbench_fn = abspath(join(dirname(realpath(__file__)), "testbench_footage_002.mp4"))
-
 # this selects the first camera found camera
 cap = cv2.VideoCapture(-1)
-# cap = cv2.VideoCapture(testbench_fn)
 
 if not cap.isOpened():
     print("Unable to connect with camera!")
@@ -79,7 +86,6 @@ except:
     print("Unable to set resolution to {0}x{1}!".format(*rez))
 rez = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 print("--  resolution: {0}x{1}".format(*rez))
-
 contourThresh = 2100 * (float(processingWidth) / rez[0])
 
 # video window
@@ -107,11 +113,7 @@ cv2.setTrackbarPos('Motion Thresh.', windowName, bgSubThresh)
 cv2.setTrackbarPos('Processing Width', windowName, processingWidth)
 
 # background subtractor
-fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh, False)
-
-# encoded file object
-# vidStream_fn = abspath(join(dirname(realpath(__file__)), "liveview/vidStream.avi"))
-# vidStream = cv2.VideoWriter(vidStream_fn, cv2.VideoWriter_fourcc(*'XVID'), fps, rez)
+fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh)
 
 threadingEn = True
 threadN = mp.cpu_count()
@@ -122,6 +124,10 @@ pending = deque(maxlen=threadN)
 latency = StatValue()
 frame_interval = StatValue()
 last_frame_time = clock()
+
+
+def grabFnDate():
+    return str(datetime.now()).replace(" ", "").replace(":", "_").replace("-", "_").replace(".", "_")
 
 
 def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
@@ -142,7 +148,10 @@ def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
 
 
 def processResponse(q):
-    while True:
+    s3 = boto3.resource('s3')
+    upWait = 2.5
+    lastUp = clock()
+    while cap.isOpened():
         # receive the data
         data = q.get()
         f = data["frame"]
@@ -157,18 +166,24 @@ def processResponse(q):
             tmp = (x1 * rr[0], y1 * rr[1], x2 * rr[0], y2 * rr[1])
             bx.append(tuple(int(x) for x in tmp))
 
-        rootN = str(datetime.now()).replace(" ", "").replace(":", "_").replace("-", "_").replace(".", "_")
-        rootP = abspath(join(join(dirname(realpath(__file__)), "crop-regions"), rootN))
-        xx = tuple((min([min(x[0], x[0] + x[2]) for x in bx]), max([max(x[0], x[0] + x[2]) for x in bx])))
-        yy = tuple((min([min(x[1], x[1] + x[3]) for x in bx]), max([max(x[1], x[1] + x[3]) for x in bx])))
-        if abs(yy[0] - yy[1]) > 0 and abs(xx[0] - xx[1]) > 0:
-            fMask = f[min(yy):max(yy), min(xx):max(xx)]
-            fn = rootP + "__mask.jpg"
-            cv2.imwrite(fn, fMask, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-            print("saving: {}".format(basename(fn)))
+        if saveCrops and len(bx) > 0:
+            rootP = join(join(sDir, "crop-regions"), grabFnDate())
+            xx = tuple((min([min(x[0], x[0] + x[2]) for x in bx]), max([max(x[0], x[0] + x[2]) for x in bx])))
+            yy = tuple((min([min(x[1], x[1] + x[3]) for x in bx]), max([max(x[1], x[1] + x[3]) for x in bx])))
+            if abs(yy[0] - yy[1]) > 0 and abs(xx[0] - xx[1]) > 0:
+                fMask = f[min(yy):max(yy), min(xx):max(xx)]
+                fn = rootP + "_regions.jpg"
+                if saveServer and (clock() - lastUp) > upWait:
+                    res, img = cv2.imencode(".jpg", fMask, [int(cv2.IMWRITE_JPEG_QUALITY), 55])
+                    if res:
+                        img = img.tostring()
+                        print("uploading frame to s3: {}".format(basename(fn)))
+                        print("-- time since last upload: {}s".format(clock() - lastUp))
+                        s3.Object("cloudguard-in", basename(fn)).put(Body=img, Metadata={"Content-Type": "Image/jpeg"})
+                        lastUp = clock()
 
 
-def processMotionFrame(q, frameI, tick, ts, rotateAng=False, newWidth=False, gBlur=(9, 9)):
+def processMotionFrame(q, frameI, tick, ts, mfa=False, rotateAng=False, newWidth=False, gBlur=(9, 9)):
     salRects = []
     frameRaw = frameI.copy()
     if rotateAng is not False:
@@ -184,7 +199,7 @@ def processMotionFrame(q, frameI, tick, ts, rotateAng=False, newWidth=False, gBl
     # return immediately if there's no motion
     salRects.extend(rectsMot)
     # if True:
-    if len(rectsMot) > 0 or MFA is True:
+    if len(rectsMot) > 0 or mfa is True:
         frameBw = cv2.equalizeHist(cv2.cvtColor(frameI, cv2.COLOR_BGR2GRAY))
         if fullBodyDetectEn:
             frameBody, rectsBody = detectPerson(frameI)
@@ -199,21 +214,25 @@ def processMotionFrame(q, frameI, tick, ts, rotateAng=False, newWidth=False, gBl
                 salRects.extend(rectsFace)
 
         frameRects = imutils.resize(frameRects, width=frameRaw.shape[1])
-        LMT = ts
         q.put({"frame": frameRaw.copy(), "ts": ts, "salRects": salRects, "szScaled": getsize(frameI)})
     return frameRaw, frameRects, tick, ts, salRects
 
 
 if __name__ == '__main__':
     q = Queue()
-    p = Process(target=processResponse, args=(q, )).start()
-
+    p = Process(target=processResponse, args=(q, ))
+    p.start()
+    streamId = 0
+    vWfn = ["vidStream", ".avi"]
+    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=cv2.VideoWriter_fourcc(*'XVID'), fps=fps, frameSize=rez)
+    vW = None
     while True:
         while len(pending) > 0 and pending[0].ready():
-            frame, frameRects, tt, ts, salPts = pending.popleft().get()
-            latency.update(clock() - tt)
+            frame, frameRects, tick, ts, salPts = pending.popleft().get()
+            latency.update(clock() - tick)
             # overlay the rectangles if motion was detected
-            if len(salPts) > 0 and frameRects is not None:
+            if len(salPts) > 0:
+                LMT = ts
                 sz = frame.shape
                 roi = frame[0:sz[0], 0:sz[1]]
                 frameMask = cv2.cvtColor(frameRects, cv2.COLOR_BGR2GRAY)
@@ -223,15 +242,16 @@ if __name__ == '__main__':
                 frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
 
             # overlay a timestamp
-            draw_str(frame, (10, frame.shape[0] - 10), "{}".format(ts), fontFace=fontFace, scale=0.6, thickness=1, color=(120, 120, 255))
+            ts = ts.strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
+            draw_str(frame, (10, frame.shape[0] - 10), "{}".format(ts), fontScale=0.6, color=(120, 120, 255))
             if threadingEn is False:
                 threadDis = 1
             else:
                 threadDis = threadN
             # overlay some stats
-            statStrings = ["threads: {:<d}".format(threadDis), "resolution: {1:>d}x{0:<d}".format(*frameRects.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
+            statStrings = ["threads: {:<d}".format(threadDis), "resolution: {1:>d}x{0:<d}".format(*frameRects.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value), "mfa: {}".format(MFA)]
 
-            txtSz = cv2.getTextSize(statStrings[0], fontFace, fontScale, fontThickness)
+            txtSz = cv2.getTextSize(statStrings[0], **fontParams)
             xOffset = xBorder
             yOffset = txtSz[0][1] + yBorder
             xDelim = " | "
@@ -240,11 +260,11 @@ if __name__ == '__main__':
             while True:
                 if xOffset != xBorder:
                     statStrings[j] = xDelim + statStrings[j]
-                txtSz = cv2.getTextSize(statStrings[j], fontFace, fontScale, fontThickness)
+                txtSz = cv2.getTextSize(statStrings[j], **fontParams)
                 txtSz = txtSz[0]
                 xOffset += txtSz[0]
                 if xOffset > (sz[1] - xBorder):
-                    draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
+                    draw_str(frame, (xBorder, yOffset), tStr, **fontParams)
                     yOffset += txtSz[1] + ySpacing
                     statStrings[j] = statStrings[j][len(xDelim):]
                     tStr = ""
@@ -255,7 +275,9 @@ if __name__ == '__main__':
                 if j > len(statStrings) - 1:
                     break
 
-            draw_str(frame, (xBorder, yOffset), tStr, fontFace=fontFace, scale=fontScale, thickness=fontThickness)
+            draw_str(frame, (xBorder, yOffset), tStr, **fontParams)
+            if vW is not None:
+                vW.write(frame)
             # update the window
             cv2.imshow(windowName, frame)
 
@@ -266,9 +288,9 @@ if __name__ == '__main__':
             t = clock()
             frame_interval.update(t - last_frame_time)
             last_frame_time = t
-            ts = datetime.utcnow().strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
+            ts = datetime.utcnow()
             pWid = cv2.getTrackbarPos('Processing Width', windowName)
-            task = pool.apply_async(processMotionFrame, args=(q, frame, t, ts, rotation, pWid))
+            task = pool.apply_async(processMotionFrame, args=(q, frame, t, ts, MFA, rotation, pWid))
             pending.append(task)
 
         # refresh the background subtraction parameters
@@ -276,6 +298,19 @@ if __name__ == '__main__':
         bgSt = cv2.getTrackbarPos('Motion Thresh.', windowName)
         fgbg.setHistory(bgSh)
         fgbg.setVarThreshold(bgSt)
+
+        # motion is underway
+        if (datetime.utcnow() - LMT) < lmtTo:
+            if MFA is False:
+                MFA = True
+                streamId += 1
+                vwParams["filename"] = join(vsDir, str(vWfn[0] + "_{:04d}_".format(streamId) + grabFnDate() + vWfn[1]))
+                vW = cv2.VideoWriter(**vwParams)
+        # no activity
+        else:
+            if MFA is True:
+                MFA = False
+                vW = None
 
         ch = cv2.waitKey(1)
         # space
@@ -285,31 +320,16 @@ if __name__ == '__main__':
         if ch == 65361:
             rotation -= 90
             rotation %= 360
-        if ch == 49:
-            fullBodyDetectEn = not fullBodyDetectEn
-            print("Full body detection: {}".format(fullBodyDetectEn))
-        if ch == 50:
-            uppderBodyDetectEn = not uppderBodyDetectEn
-            print("Upper body detection: {}".format(uppderBodyDetectEn))
-        if ch == 51:
-            faceDetectEn = not faceDetectEn
-            print("Face detection: {}".format(faceDetectEn))
-        # up arrow key
-        if ch == 65362:
-            contourThresh += 250
-            print("New contour threshold: {}".format(contourThresh))
         # right arrow key
         if ch == 65363:
             rotation += 90
             rotation %= 360
-        # down arrow key
-        if ch == 65364:
-            contourThresh -= 250
-            print("New contour threshold: {}".format(contourThresh))
         # escape
         if (ch & 0xff) == 27:
             break
 
-    p.terminate()
     cap.release()
     cv2.destroyAllWindows()
+
+p.terminate()
+sys.exit()
