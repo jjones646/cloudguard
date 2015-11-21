@@ -11,7 +11,7 @@ from collections import deque
 # local imports
 from common import clock, draw_str, StatValue
 from peopledetect import detectPerson
-from persondetect import detectUppderBody, detectFace
+from persondetect import detectUppderBody, detectFace, drawFrame
 from pprint import pprint
 
 windowName = "PiGuard"
@@ -109,9 +109,9 @@ frame_interval = StatValue()
 last_frame_time = clock()
 
 
-def drawFrame(frame, rects, thickness=1, color=(150, 150, 150)):
-    dCount = 0
-    frameFrames = np.zeros(frame.shape, np.uint8)
+def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
+    pts = []
+    frameF = np.zeros(frame.shape, np.uint8)
     # get contours
     _, cnts, hierarchy = cv2.findContours(rects.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # loop over the contours
@@ -121,46 +121,46 @@ def drawFrame(frame, rects, thickness=1, color=(150, 150, 150)):
             continue
         box = cv2.boxPoints(cv2.minAreaRect(c))
         box = np.int0(box)
-        cv2.drawContours(frameFrames, [box], 0, color, thickness)
-        dCount += 1
-    return frameFrames, dCount
+        cv2.drawContours(frameF, [box], 0, color, thickness)
+        pts.append(cv2.boundingRect(c))
+    return frameF, pts
 
+def processDepthFrame(frameI, )
 
-def processFrame(frameI, t0, ts, rotateAng=False, newWidth=False):
+def processMotionFrame(frameI, t0, ts, rotateAng=False, newWidth=False):
     origSz = frameI.shape
+    frameRet = frameI.copy()
     if rotateAng is not False:
         frameI = imutils.rotate(frameI, angle=rotateAng)
     if newWidth is not False:
         frameI = imutils.resize(frameI, width=newWidth)
     # blur
     frameBlur = cv2.GaussianBlur(frameI, (9, 9), 0)
-    frameBw = cv2.equalizeHist(cv2.cvtColor(frameI, cv2.COLOR_BGR2GRAY))
     # bg sub
     fgmask = fgbg.apply(frameBlur)
     # get our frame outlines
-    frame, det = drawFrame(frameI, fgmask, thickness=1)
+    frame, detRects = getMotions(frameI, fgmask, thickness=1)
     # return immediately if there's no motion
-    det += 1
-    if det > 0:
+    interestFrames = []
+    if True:
+        # if len(findContoursdetRects) = 0:
+        frameBw = cv2.equalizeHist(cv2.cvtColor(frameI, cv2.COLOR_BGR2GRAY))
+        interestFrames.extend(detRects)
         if fullBodyDetectEn:
-            # frameBody, bodyRects = detectBody(frameBw)
             frameBody, bodyRects = detectPerson(frameI)
             if len(bodyRects) > 0:
                 frame = cv2.add(frame, frameBody)
-
-        # if uppderBodyDetectEn:
-        #     frameUBody, uBodyRects = detectUppderBody(frameBw)
-        #     if len(uBodyRects) > 0:
-        #         frame = cv2.add(frame, frameUBody)
+                interestFrames.extend(bodyRects)
 
         if faceDetectEn:
             frameFace, faceRects = detectFace(frameBw)
             if len(faceRects) > 0:
                 frame = cv2.add(frame, frameFace)
+                interestFrames.extend(faceRects)
 
+    frameP = frame.copy()
     frame = imutils.resize(frame, width=origSz[1])
-    frameI = imutils.resize(frameI, width=origSz[1])
-    return frameI, frame, t0, det, ts
+    return frameRet, frame, t0, ts, interestFrames, frameP
 
 # params for the text overlaid on the output feed
 fontFace = cv2.FONT_HERSHEY_SIMPLEX
@@ -172,10 +172,16 @@ ySpacing = 10
 
 while True:
     while len(pending) > 0 and pending[0].ready():
-        frame, frameDraw, tt, detected, ts = pending.popleft().get()
+        frame, frameDraw, tt, ts, detFrames, frameP = pending.popleft().get()
         latency.update(clock() - tt)
         sz = frame.shape
-        if detected > 0:
+        if len(detFrames) > 0:
+            resz = frameP.shape
+            bBox = (min([x[1] for x in detFrames]), min([x[0] for x in detFrames]), max([x[3] for x in detFrames]), max([x[2] for x in detFrames]))
+            frameBounding = np.zeros(frameP.shape, np.uint8)
+            cv2.rectangle(frameBounding, (bBox[0], bBox[1]), (bBox[2], bBox[3]), (0, 0, 255), thickness=4)
+            frameBounding = imutils.resize(frameBounding, width=frame.shape[1])
+            frame = cv2.add(frame, frameBounding)
             # overlay the drawings
             roi = frame[0:sz[0], 0:sz[1]]
             frameMask = cv2.cvtColor(frameDraw, cv2.COLOR_BGR2GRAY)
@@ -183,6 +189,7 @@ while True:
             frameBg = cv2.bitwise_and(roi, roi, mask=cv2.bitwise_not(frameMask))
             frameMaskFg = cv2.bitwise_and(frameDraw, frameDraw, mask=frameMask)
             frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
+
         # overlay a timestamp
         draw_str(frame, (10, frame.shape[0] - 10), "{}".format(ts), fontFace=fontFace, scale=0.6, thickness=1, color=(120, 120, 255))
         if threadingEn is False:
@@ -229,7 +236,7 @@ while True:
         last_frame_time = t
         ts = datetime.datetime.utcnow().strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
         pWid = cv2.getTrackbarPos('Processing Width', windowName)
-        task = pool.apply_async(processFrame, args=(frame, t, ts, rotation, pWid))
+        task = pool.apply_async(processMotionFrame, args=(frame, t, ts, rotation, pWid))
         pending.append(task)
 
     bgSh = cv2.getTrackbarPos('Motion Hist.', windowName)

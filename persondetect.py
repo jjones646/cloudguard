@@ -18,8 +18,11 @@ def detect(frame, cas, sf=1.3, mn=3, ms=(28, 35), mxs=(0, 0)):
 
 
 def drawFrame(frame, rects, thickness=1, color=(255, 200, 200)):
+    rectsTup = []
     for x1, y1, x2, y2 in rects:
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
+        rectsTup.append((x1, x2, y1, y2))
+    return rectsTup
 
 
 def normalizeFrame(frame):
@@ -32,14 +35,14 @@ def normalizeFrame(frame):
 
 
 def detectUppderBody(frame):
-    frame, frameFrames = normalizeFrame(frame)
+    frame, frameF = normalizeFrame(frame)
     rects = detect(frame, cascade[0], sf=1.15, mn=2)
-    drawFrame(frameFrames, rects, thickness=3, color=(130, 130, 255))
-    return frameFrames, rects
+    rects = drawFrame(frameF, rects, thickness=3, color=(130, 130, 255))
+    return frameF, rects
 
 
 def detectFace(frame):
-    frame, frameFrames = normalizeFrame(frame)
+    frame, frameF = normalizeFrame(frame)
     rects = detect(frame, cascade[1], mn=4)
-    drawFrame(frameFrames, rects, thickness=2, color=(0, 255, 0))
-    return frameFrames, rects
+    rects = drawFrame(frameF, rects, thickness=2, color=(0, 255, 0))
+    return frameF, rects
