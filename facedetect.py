@@ -21,7 +21,7 @@ def drawFrame(frame, rects, thickness=1, color=(255, 200, 200)):
     rectsTup = []
     for x1, y1, x2, y2 in rects:
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
-        rectsTup.append((x1, x2, y1, y2))
+        rectsTup.append((x1, y1, abs(x2 - x1), abs(y2 - y1)))
     return rectsTup
 
 

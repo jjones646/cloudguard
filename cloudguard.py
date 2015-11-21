@@ -11,7 +11,7 @@ from multiprocessing import Process, Queue
 from multiprocessing.pool import ThreadPool
 from collections import deque
 # local imports
-from common import clock, draw_str, StatValue
+from common import clock, draw_str, StatValue, getsize
 from persondetect import detectPerson
 from facedetect import detectFace, drawFrame
 # from pprint import pprint
@@ -25,7 +25,7 @@ processingWidth = 320
 bgSubHist = 350
 bgSubThresh = 8
 
-faceDetectEn = False
+faceDetectEn = True
 fullBodyDetectEn = False
 
 # params for the text overlaid on the output feed
@@ -110,8 +110,8 @@ cv2.setTrackbarPos('Processing Width', windowName, processingWidth)
 fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh, False)
 
 # encoded file object
-vidStream_fn = abspath(join(dirname(realpath(__file__)), "liveview/vidStream.avi"))
-vidStream = cv2.VideoWriter(vidStream_fn, cv2.VideoWriter_fourcc(*'XVID'), fps, rez)
+# vidStream_fn = abspath(join(dirname(realpath(__file__)), "liveview/vidStream.avi"))
+# vidStream = cv2.VideoWriter(vidStream_fn, cv2.VideoWriter_fourcc(*'XVID'), fps, rez)
 
 threadingEn = True
 threadN = mp.cpu_count()
@@ -143,7 +143,29 @@ def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
 
 def processResponse(q):
     while True:
-        print(type(q.get()))
+        # receive the data
+        data = q.get()
+        f = data["frame"]
+        bxScl = data["salRects"]
+        szScl = data["szScaled"]
+        ts = data["ts"]
+        sz = getsize(f)
+        rr = (float(sz[0]) / szScl[0], float(sz[1]) / szScl[1])
+        # rescale the rectangular dimensions to our original resolution
+        bx = []
+        for x1, y1, x2, y2 in bxScl:
+            tmp = (x1 * rr[0], y1 * rr[1], x2 * rr[0], y2 * rr[1])
+            bx.append(tuple(int(x) for x in tmp))
+
+        rootN = str(datetime.now()).replace(" ", "").replace(":", "_").replace("-", "_").replace(".", "_")
+        rootP = abspath(join(join(dirname(realpath(__file__)), "crop-regions"), rootN))
+        xx = tuple((min([min(x[0], x[0] + x[2]) for x in bx]), max([max(x[0], x[0] + x[2]) for x in bx])))
+        yy = tuple((min([min(x[1], x[1] + x[3]) for x in bx]), max([max(x[1], x[1] + x[3]) for x in bx])))
+        if abs(yy[0] - yy[1]) > 0 and abs(xx[0] - xx[1]) > 0:
+            fMask = f[min(yy):max(yy), min(xx):max(xx)]
+            fn = rootP + "__mask.jpg"
+            cv2.imwrite(fn, fMask, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            print("saving: {}".format(basename(fn)))
 
 
 def processMotionFrame(q, frameI, tick, ts, rotateAng=False, newWidth=False, gBlur=(9, 9)):
@@ -162,7 +184,7 @@ def processMotionFrame(q, frameI, tick, ts, rotateAng=False, newWidth=False, gBl
     # return immediately if there's no motion
     salRects.extend(rectsMot)
     # if True:
-    if len(rectsMot) > 0:
+    if len(rectsMot) > 0 or MFA is True:
         frameBw = cv2.equalizeHist(cv2.cvtColor(frameI, cv2.COLOR_BGR2GRAY))
         if fullBodyDetectEn:
             frameBody, rectsBody = detectPerson(frameI)
@@ -178,9 +200,7 @@ def processMotionFrame(q, frameI, tick, ts, rotateAng=False, newWidth=False, gBl
 
         frameRects = imutils.resize(frameRects, width=frameRaw.shape[1])
         LMT = ts
-        q.put([frameRaw, ts, salRects])
-    else:
-        frameRects = None
+        q.put({"frame": frameRaw.copy(), "ts": ts, "salRects": salRects, "szScaled": getsize(frameI)})
     return frameRaw, frameRects, tick, ts, salRects
 
 
@@ -290,6 +310,6 @@ if __name__ == '__main__':
         if (ch & 0xff) == 27:
             break
 
+    p.terminate()
     cap.release()
     cv2.destroyAllWindows()
-    p.terminate()
