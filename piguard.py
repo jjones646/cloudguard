@@ -125,7 +125,7 @@ def getMotions(frame, rects, thickness=1, color=(170, 170, 170)):
         pts.append(cv2.boundingRect(c))
     return frameF, pts
 
-def processDepthFrame(frameI, )
+# def processDepthFrame(frameI, )
 
 def processMotionFrame(frameI, t0, ts, rotateAng=False, newWidth=False):
     origSz = frameI.shape
