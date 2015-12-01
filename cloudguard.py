@@ -13,13 +13,14 @@ from multiprocessing import Process, Queue
 from multiprocessing.pool import ThreadPool
 from collections import deque
 # local imports
+sDir = abspath(dirname(realpath(__file__)))
+sys.path.insert(0, join(sDir, "lib"))
 from common import clock, draw_str, StatValue, getsize
 from persondetect import detectPerson
 from facedetect import detectFace, drawFrame
 from config_parse import decodeConfig
 
 # set directory for the path to this script
-sDir = abspath(dirname(realpath(__file__)))
 configFn = join(join(sDir, "config.json"))
 configFn2 = join(join(sDir, "config2.json"))
 vsDir = join(sDir, "vid-streams")
@@ -47,9 +48,6 @@ def saveConfig():
         except:
             print("Error saving config values!")
 
-
-faceDetectEn = True
-fullBodyDetectEn = True
 saveServer = True
 saveCrops = saveServer
 
@@ -146,7 +144,7 @@ if config.window.en:
 fgbg = cv2.createBackgroundSubtractorMOG2(config.computing.bgHist, config.computing.bgThresh)
 
 threadingEn = True
-threadN = mp.cpu_count()
+threadN = mp.cpu_count() - 1
 
 pool = ThreadPool(processes=threadN)
 pending = deque(maxlen=threadN)
@@ -250,14 +248,14 @@ def processMotionFrame(q, f, tick, ts, mfa=False, rotateAng=False, width=False, 
         numBodies = 0
         numFaces = 0
         fBw = cv2.equalizeHist(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
-        if fullBodyDetectEn:
+        if config.computing.bodyDetectionEn:
             fBody, rectsBody = detectPerson(f, color=(255, 0, 0))
             if len(rectsBody) > 0:
                 fRects = cv2.add(fRects, fBody)
                 numBodies = len(rectsBody)
                 rectsSal.extend(rectsBody)
 
-        if faceDetectEn:
+        if config.computing.faceDetectionEn:
             fFace, rectsFace = detectFace(fBw, color=(0, 255, 0))
             if len(rectsFace) > 0:
                 fRects = cv2.add(fRects, fFace)

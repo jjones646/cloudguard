@@ -18,7 +18,9 @@
             "__type__": "computing_config",
             "width": 240,
             "sub_thresh": 350,
-            "sub_hist": 5
+            "sub_hist": 5,
+	    "face_detection": false,
+	    "body_detection": false
         },
         "cloud": {
             "__type__": "cloud_config",

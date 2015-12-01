@@ -23,6 +23,8 @@ class computingConfig(object):
         self.width = int(data["width"])
         self.bgThresh = int(data["sub_thresh"])
         self.bgHist = int(data["sub_hist"])
+	self.faceDetectionEn = bool(data["face_detection"])
+	self.bodyDetectionEn = bool(data["body_detection"])
 
 
 class cloudConfig(object):
