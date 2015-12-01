@@ -60,7 +60,7 @@ ySpacing = 10
 
 fontParams = dict(fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.45, thickness=1)
 
-cap = cv2.VideoCapture(testbench_fn)
+# cap = cv2.VideoCapture(testbench_fn)
 
 # Last Motion Timestamp
 LMT = datetime.utcnow()
