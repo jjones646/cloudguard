@@ -352,17 +352,19 @@ if __name__ == '__main__':
             fgbg.setVarThreshold(bgSt)
 
         # motion is underway
-        if (datetime.utcnow() - LMT) < lmtTo:
-            if MFA is False:
-                MFA = True
-                streamId += 1
-                vwParams["filename"] = join(vsDir, str(vWfn[0] + "_{:04d}_".format(streamId) + grabFnDate() + vWfn[1]))
-                vW = cv2.VideoWriter(**vwParams)
-        # no activity
-        else:
-            if MFA is True:
-                MFA = False
-                vW = None
+        safeStream = False
+        if safeStream:
+            if (datetime.utcnow() - LMT) < lmtTo:
+                if MFA is False:
+                    MFA = True
+                    streamId += 1
+                    vwParams["filename"] = join(vsDir, str(vWfn[0] + "_{:04d}_".format(streamId) + grabFnDate() + vWfn[1]))
+                    vW = cv2.VideoWriter(**vwParams)
+            # no activity
+            else:
+                if MFA is True:
+                    MFA = False
+                    vW = None
 
         ch = cv2.waitKey(1)
         # space
