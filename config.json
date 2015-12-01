@@ -1,19 +1,36 @@
-{    
-    "show_video": false,
-    "save_local": true,
-    "liveview_en": true,
-    "show_contours": true,
-    "motion_thresh": 5.0,
-    "log_motion": true,
-    "use_dropbox": false,
-    "dropbox_key": null,
-    "dropbox_secret": null,
-    "dropbox_base_path": null,
-    "min_upload_seconds": 3.0,
-    "min_motion_frames": 8,
-    "camera_warmup_time": 2.5,
-    "delta_thresh": 5,
-    "resolution": [640, 480],
-    "fps": 16,
-    "min_area": 4000
+{
+    "__type__": "config_block",
+    "config": {
+        "window": {
+            "__type__": "window_config",
+            "title": "CloudGuard",
+            "enabled": false
+        },
+        "camera": {
+            "__type__": "camera_config",
+            "resolution": [
+                640, 480
+            ],
+            "fps": 10,
+            "rotation": 0
+        },
+        "computing": {
+            "__type__": "computing_config",
+            "width": 240,
+            "sub_thresh": 350,
+            "sub_hist": 5
+        },
+        "cloud": {
+            "__type__": "cloud_config",
+            "upload": true,
+            "save_local": true,
+            "min_upload_seconds": 3.0,
+            "min_motion_frames": 8
+        },
+        "show_contours": true,
+        "motion_thresh": 5.0,
+        "log_motion": true,
+        "delta_thresh": 5,
+        "min_area": 4000
+    }
 }

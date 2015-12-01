@@ -6,6 +6,7 @@ import logging
 import multiprocessing as mp
 import numpy as np
 import boto3
+import json
 from datetime import datetime, timedelta
 from os.path import *
 from multiprocessing import Process, Queue
@@ -15,15 +16,37 @@ from collections import deque
 from common import clock, draw_str, StatValue, getsize
 from persondetect import detectPerson
 from facedetect import detectFace, drawFrame
+from config_parse import decodeConfig
 
-windowName = "PiGuard"
-rez = (640, 480)
-fps = 10
-rotation = 0
+# set directory for the path to this script
+sDir = abspath(dirname(realpath(__file__)))
+configFn = join(join(sDir, "config.json"))
+configFn2 = join(join(sDir, "config2.json"))
+vsDir = join(sDir, "vid-streams")
+testbench_fn = join(sDir, "testbench_footage_003.mp4")
 
-processingWidth = 240
-bgSubHist = 350
-bgSubThresh = 10
+if not isfile(configFn):
+    print("No config file found!")
+    sys.exit(1)
+
+# read config file
+# try:
+with open(configFn, "r") as f:
+    config = json.load(f, object_hook=decodeConfig)
+# except:
+#     print("Error parsing json config file!")
+#     sys.exit(2)
+
+
+# function for resaving the config file
+def saveConfig():
+    if config is not None:
+        try:
+            with open(configFn2, 'w') as f:
+                json.dump(config, f)
+        except:
+            print("Error saving config values!")
+
 
 faceDetectEn = True
 fullBodyDetectEn = True
@@ -36,9 +59,7 @@ yBorder = 20
 ySpacing = 10
 
 fontParams = dict(fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.45, thickness=1)
-sDir = abspath(dirname(realpath(__file__)))
-vsDir = join(sDir, "vid-streams")
-testbench_fn = join(sDir, "testbench_footage_003.mp4")
+
 cap = cv2.VideoCapture(testbench_fn)
 
 # Last Motion Timestamp
@@ -56,7 +77,7 @@ devs = [x for x in devs if x is not None]
 devsP = ""
 if len(devs) == 0:
     print("No USB video devices found!")
-    sys.exit(1)
+    sys.exit(3)
 elif len(devs) > 1:
     devsP = "s"
 print("--  {} audio/video USB device{} detected".format(len(devs), devsP))
@@ -68,56 +89,61 @@ cap = cv2.VideoCapture(-1)
 
 if not cap.isOpened():
     print("Unable to connect with camera!")
-    sys.exit(2)
+    sys.exit(4)
 
 # set the framerate as specified at the top
 try:
-    pass
-    # cap.set(cv2.CAP_PROP_FPS, fps)
+    if cv2.CAP_PROP_FPS is not None:
+        cap.set(cv2.CAP_PROP_FPS, config.camera.fps)
+    else:
+        print("OpenCV not compiled with camera framerate property!")
 except:
-    print("Unable to set framerate to {:.1f}!".format(fps))
+    print("Unable to set framerate to {:.1f}!".format(config.camera.fps))
 
-fps = cap.get(cv2.CAP_PROP_FPS)
-print("--  framerate: {}".format(fps))
+config.camera.fps = cap.get(cv2.CAP_PROP_FPS)
+print("--  framerate: {}".format(config.camera.fps))
 
 # set the resolution as specified at the top
 try:
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, rez[0])
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, rez[1])
+    if cv2.CAP_PROP_FRAME_WIDTH is not None:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.camera.res[0])
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.camera.res[1])
+    else:
+        print("OpenCV not compiled with camera resolution properties!")
 except:
-    print("Unable to set resolution to {0}x{1}!".format(*rez))
+    print("Unable to set resolution to {0}x{1}!".format(*config.camera.res))
 
-rez = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-print("--  resolution: {0}x{1}".format(*rez))
+config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+print("--  resolution: {0}x{1}".format(*config.camera.res))
 
-contourThresh = 2100 * (float(processingWidth) / rez[0])
+contourThresh = 2100 * (float(config.computing.width) / config.camera.res[0])
 
-# video window
-cv2.namedWindow(windowName)
+# display the window if it's enabled in the config
+if config.window.en:
 
+    def updateSubHist(x):
+        config.computing.bgHist = x
 
-def updateSubHist(x):
-    bgSubHist = x
+    def updatebgSubThresh(x):
+        config.computing.bgThresh = x
 
+    def updateProcessingWidth(x):
+        config.computing.width = x
 
-def updatebgSubThresh(x):
-    bgSubThresh = x
+    # create the window
+    cv2.namedWindow(config.window.name)
 
-
-def updateProcessingWidth(x):
-    processingWidth = x
-
-# trackbars for the window gui
-cv2.createTrackbar('Motion Hist.', windowName, 0, 800, updateSubHist)
-cv2.createTrackbar('Motion Thresh.', windowName, 0, 40, updatebgSubThresh)
-cv2.createTrackbar('Processing Width', windowName, 200, rez[1], updateProcessingWidth)
-# set initial positions
-cv2.setTrackbarPos('Motion Hist.', windowName, bgSubHist)
-cv2.setTrackbarPos('Motion Thresh.', windowName, bgSubThresh)
-cv2.setTrackbarPos('Processing Width', windowName, processingWidth)
+    # trackbars for the window gui
+    cv2.createTrackbar('Motion Hist.', config.window.name, 0, 800, updateSubHist)
+    cv2.createTrackbar('Motion Thresh.', config.window.name, 0, 40, updatebgSubThresh)
+    cv2.createTrackbar('Processing Width', config.window.name, 200, config.camera.res[1], updateProcessingWidth)
+    # set initial positions
+    cv2.setTrackbarPos('Motion Hist.', config.window.name, config.computing.bgHist)
+    cv2.setTrackbarPos('Motion Thresh.', config.window.name, config.computing.bgThresh)
+    cv2.setTrackbarPos('Processing Width', config.window.name, config.computing.width)
 
 # background subtractor
-fgbg = cv2.createBackgroundSubtractorMOG2(bgSubHist, bgSubThresh)
+fgbg = cv2.createBackgroundSubtractorMOG2(config.computing.bgHist, config.computing.bgThresh)
 
 threadingEn = True
 threadN = mp.cpu_count()
@@ -249,7 +275,7 @@ if __name__ == '__main__':
     p.start()
     streamId = 0
     vWfn = ["vidStream", ".avi"]
-    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=cv2.VideoWriter_fourcc(*'XVID'), fps=fps, frameSize=rez)
+    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=cv2.VideoWriter_fourcc(*'XVID'), fps=config.camera.fps, frameSize=config.camera.res)
     vW = None
     while True:
         while len(pending) > 0 and pending[0].ready():
@@ -304,7 +330,8 @@ if __name__ == '__main__':
             if vW is not None:
                 vW.write(frame)
             # update the window
-            cv2.imshow(windowName, frame)
+            if config.window.en:
+                cv2.imshow(config.window.name, frame)
 
         if (threadingEn is True and len(pending) < threadN) or (threadingEn is False and len(pending) == 0):
             grabbed, frame = cap.read()
@@ -314,15 +341,15 @@ if __name__ == '__main__':
             frame_interval.update(t - last_frame_time)
             last_frame_time = t
             ts = datetime.utcnow()
-            pWid = cv2.getTrackbarPos('Processing Width', windowName)
-            task = pool.apply_async(processMotionFrame, args=(q, frame, t, ts, MFA, rotation, pWid))
+            task = pool.apply_async(processMotionFrame, args=(q, frame, t, ts, MFA, config.camera.rot, config.computing.width))
             pending.append(task)
 
-        # refresh the background subtraction parameters
-        bgSh = cv2.getTrackbarPos('Motion Hist.', windowName)
-        bgSt = cv2.getTrackbarPos('Motion Thresh.', windowName)
-        fgbg.setHistory(bgSh)
-        fgbg.setVarThreshold(bgSt)
+        if config.window.en:
+            # refresh the background subtraction parameters
+            bgSh = cv2.getTrackbarPos('Motion Hist.', config.window.name)
+            bgSt = cv2.getTrackbarPos('Motion Thresh.', config.window.name)
+            fgbg.setHistory(bgSh)
+            fgbg.setVarThreshold(bgSt)
 
         # motion is underway
         if (datetime.utcnow() - LMT) < lmtTo:
@@ -343,13 +370,15 @@ if __name__ == '__main__':
             threadingEn = not threadingEn
         # left arrow key
         if ch == 65361:
-            rotation -= 90
-            rotation %= 360
-        # right arrow key
+            config.camera.rot -= 90
+            config.camera.rot %= 360
+            saveConfig()
+            # right arrow key
         if ch == 65363:
-            rotation += 90
-            rotation %= 360
-        # escape
+            config.camera.rot += 90
+            config.camera.rot %= 360
+            saveConfig()
+            # escape
         if (ch & 0xff) == 27:
             break
 
