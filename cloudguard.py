@@ -25,8 +25,8 @@ processingWidth = 240
 bgSubHist = 350
 bgSubThresh = 10
 
-faceDetectEn = True
-fullBodyDetectEn = True
+faceDetectEn = False
+fullBodyDetectEn = False
 saveServer = True
 saveCrops = saveServer
 
@@ -304,7 +304,7 @@ if __name__ == '__main__':
             if vW is not None:
                 vW.write(frame)
             # update the window
-            cv2.imshow(windowName, frame)
+            # cv2.imshow(windowName, frame)
 
         if (threadingEn is True and len(pending) < threadN) or (threadingEn is False and len(pending) == 0):
             grabbed, frame = cap.read()
