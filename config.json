@@ -4,7 +4,7 @@
         "window": {
             "__type__": "window_config",
             "title": "CloudGuard",
-            "enabled": false
+            "enabled": true
         },
         "camera": {
             "__type__": "camera_config",
@@ -19,8 +19,8 @@
             "width": 240,
             "sub_thresh": 350,
             "sub_hist": 5,
-	    "face_detection": false,
-	    "body_detection": false
+            "face_detection": false,
+            "body_detection": false
         },
         "cloud": {
             "__type__": "cloud_config",
