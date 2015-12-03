@@ -3,36 +3,37 @@
     "config": {
         "window": {
             "__type__": "window_config",
-            "title": "CloudGuard",
-            "enabled": true
+            "name": "CloudGuard",
+            "enabled": false,
+            "overlay_enabled": false,
+            "border_x": 20,
+            "border_y": 20,
+            "spacing_y": 10
         },
         "camera": {
             "__type__": "camera_config",
             "resolution": [
                 640, 480
             ],
-            "fps": 10,
+            "fps": 16,
             "rotation": 0
         },
         "computing": {
             "__type__": "computing_config",
             "width": 240,
-            "sub_thresh": 350,
-            "sub_hist": 5,
-            "face_detection": false,
-            "body_detection": false
+            "bg_sub_thresh": 5,
+            "bg_sub_hist": 350,
+            "threading_enabled": false,
+            "face_detection_enabled": false,
+            "body_detection_enabled": false
         },
-        "cloud": {
-            "__type__": "cloud_config",
-            "upload": true,
-            "save_local": true,
-            "min_upload_seconds": 3.0,
-            "min_motion_frames": 8
-        },
-        "show_contours": true,
-        "motion_thresh": 5.0,
-        "log_motion": true,
-        "delta_thresh": 5,
-        "min_area": 4000
+        "storage": {
+            "__type__": "storage_config",
+            "save_cloud_crops": false,
+            "save_local_crops": false,
+            "save_local_vids": false,
+            "encoding_quality": 55,
+            "min_upload_delay": 1.5
+        }
     }
 }

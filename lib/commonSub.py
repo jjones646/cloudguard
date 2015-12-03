@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-This module contains some common routines used by other samples.
+    This module contains a subset of functions from the official OpenCV examples.
 '''
 
 # Python 2/3 compatibility
@@ -11,8 +11,8 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     from functools import reduce
 
-import numpy as np
 import cv2
+import numpy as np
 
 # built-in modules
 import os
@@ -20,14 +20,6 @@ import itertools as it
 from contextlib import contextmanager
 
 image_extensions = ['.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pbm', '.pgm', '.ppm']
-
-
-class Bunch(object):
-    def __init__(self, **kw):
-        self.__dict__.update(kw)
-
-    def __str__(self):
-        return str(self.__dict__)
 
 
 def splitfn(fn):
@@ -92,59 +84,6 @@ def draw_str(dst, target, s, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, c
     cv2.putText(dst, s, (x, y), fontFace, fontScale, color, thickness=thickness, lineType=cv2.LINE_AA)
 
 
-class Sketcher:
-    def __init__(self, windowname, dests, colors_func):
-        self.prev_pt = None
-        self.windowname = windowname
-        self.dests = dests
-        self.colors_func = colors_func
-        self.dirty = False
-        self.show()
-        cv2.setMouseCallback(self.windowname, self.on_mouse)
-
-    def show(self):
-        cv2.imshow(self.windowname, self.dests[0])
-
-    def on_mouse(self, event, x, y, flags, param):
-        pt = (x, y)
-        if event == cv2.EVENT_LBUTTONDOWN:
-            self.prev_pt = pt
-        elif event == cv2.EVENT_LBUTTONUP:
-            self.prev_pt = None
-
-        if self.prev_pt and flags & cv2.EVENT_FLAG_LBUTTON:
-            for dst, color in zip(self.dests, self.colors_func()):
-                cv2.line(dst, self.prev_pt, pt, color, 5)
-            self.dirty = True
-            self.prev_pt = pt
-            self.show()
-
-# palette data from matplotlib/_cm.py
-_jet_data = {'red': ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89, 1, 1), (1, 0.5, 0.5)), 'green': ((0., 0, 0), (0.125, 0, 0), (0.375, 1, 1), (0.64, 1, 1), (0.91, 0, 0), (1, 0, 0)), 'blue': ((0., 0.5, 0.5), (0.11, 1, 1), (0.34, 1, 1), (0.65, 0, 0), (1, 0, 0))}
-
-cmap_data = {'jet': _jet_data}
-
-
-def make_cmap(name, n=256):
-    data = cmap_data[name]
-    xs = np.linspace(0.0, 1.0, n)
-    channels = []
-    eps = 1e-6
-    for ch_name in ['blue', 'green', 'red']:
-        ch_data = data[ch_name]
-        xp, yp = [], []
-        for x, y1, y2 in ch_data:
-            xp += [x, x + eps]
-            yp += [y1, y2]
-        ch = np.interp(xs, xp, yp)
-        channels.append(ch)
-    return np.uint8(np.array(channels).T * 255)
-
-
-def nothing(*arg, **kw):
-    pass
-
-
 def clock():
     return cv2.getTickCount() / cv2.getTickFrequency()
 
@@ -157,6 +96,24 @@ def Timer(msg):
         yield
     finally:
         print("%.2f ms" % ((clock() - start) * 1000))
+
+
+def getsize(img):
+    h, w = img.shape[:2]
+    return w, h
+
+
+def decode_fourcc(v):
+    v = int(v)
+    return "".join([chr((v >> 8 * i) & 0xFF) for i in range(4)])
+
+
+def grabFnDate(utc=False):
+    if utc is True:
+        ts = datetime.utcnow()
+    else:
+        ts = datetime.now()
+    return str(ts).replace(":", "_").replace(" ", "-").replace(".", "_")
 
 
 class StatValue:
@@ -209,45 +166,3 @@ class RectSelector:
     @property
     def dragging(self):
         return self.drag_rect is not None
-
-
-def grouper(n, iterable, fillvalue=None):
-    '''grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx'''
-    args = [iter(iterable)] * n
-    if PY3:
-        output = it.zip_longest(fillvalue=fillvalue, *args)
-    else:
-        output = it.izip_longest(fillvalue=fillvalue, *args)
-    return output
-
-
-def mosaic(w, imgs):
-    '''Make a grid from images.
-
-    w    -- number of grid columns
-    imgs -- images (must have same size and format)
-    '''
-    imgs = iter(imgs)
-    if PY3:
-        img0 = next(imgs)
-    else:
-        img0 = imgs.next()
-    pad = np.zeros_like(img0)
-    imgs = it.chain([img0], imgs)
-    rows = grouper(w, imgs, pad)
-    return np.vstack(map(np.hstack, rows))
-
-
-def getsize(img):
-    h, w = img.shape[:2]
-    return w, h
-
-
-def mdot(*args):
-    return reduce(np.dot, args)
-
-
-def draw_keypoints(vis, keypoints, color=(0, 255, 255)):
-    for kp in keypoints:
-        x, y = kp.pt
-        cv2.circle(vis, (int(x), int(y)), 2, color)

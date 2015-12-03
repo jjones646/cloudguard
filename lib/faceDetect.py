@@ -2,9 +2,10 @@ import sys
 import imutils
 import cv2
 import numpy as np
+import __main__ as main
 from os.path import *
 
-cascade_fn = [abspath(join(dirname(realpath(__file__)), "haarcascades/haarcascade_upperbody.xml")), abspath(join(dirname(realpath(__file__)), "haarcascades/haarcascade_frontalface_alt.xml"))]
+cascade_fn = [abspath(join(dirname(realpath(main.__file__)), "haarcascades/haarcascade_upperbody.xml")), abspath(join(dirname(realpath(main.__file__)), "haarcascades/haarcascade_frontalface_alt.xml"))]
 cascade = [cv2.CascadeClassifier(fn) for fn in cascade_fn]
 
 
