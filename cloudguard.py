@@ -83,7 +83,8 @@ for d in devs:
     print("--  USB device found at {:04X}:{:04X}".format(d.idVendor, d.idProduct))
 
 # this selects the first camera found camera
-cap = cv2.VideoCapture(-1)
+# cap = cv2.VideoCapture(-1)
+cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
     print("Unable to connect with camera!")
@@ -118,6 +119,7 @@ contourThresh = 2100 * (float(config.computing.width) / config.camera.res[0])
 
 # display the window if it's enabled in the config
 if config.window.en:
+    cv2.namedWindow(config.window.name)
 
     def updateSubHist(x):
         config.computing.bgHist = x
@@ -143,8 +145,8 @@ if config.window.en:
 # background subtractor
 fgbg = cv2.createBackgroundSubtractorMOG2(config.computing.bgHist, config.computing.bgThresh)
 
-threadingEn = True
-threadN = mp.cpu_count() - 1
+threadingEn = False
+threadN = mp.cpu_count()
 
 pool = ThreadPool(processes=threadN)
 pending = deque(maxlen=threadN)
@@ -243,8 +245,8 @@ def processMotionFrame(q, f, tick, ts, mfa=False, rotateAng=False, width=False, 
     # return immediately if there's no motion
     rectsSal.extend(rectsMot)
     numMotion = len(rectsMot)
-    # if True:
-    if numMotion > 0 or mfa is True:
+    if True:
+    # if numMotion > 0 or mfa is True:
         numBodies = 0
         numFaces = 0
         fBw = cv2.equalizeHist(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
