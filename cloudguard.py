@@ -222,11 +222,11 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
     if True:
         # don't do anything else if there's no motion of any kind detected
         # if numMotion > 0 or mfa is True:
-        # generate a histogram equalized bw image if we're doing processing
-        # that needs it
+        numBodies = 0
+        numFaces = 0
         if config.computing.body_detection_en or config.computing.face_detection_en:
-            numBodies = 0
-            numFaces = 0
+            # generate a histogram equalized bw image if we're doing processing
+            # that needs it
             fBw = cv2.equalizeHist(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
             if config.computing.body_detection_en:
                 fBody, rectsBody = detectPerson(f, color=(255, 0, 0))
@@ -245,6 +245,7 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
         fRects = imutils.resize(fRects, width=fCopy.shape[1])
         q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(
             f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
+
     return f, fRects, rectsSal, tick, ts
 
 
