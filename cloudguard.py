@@ -228,19 +228,19 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
             numBodies = 0
             numFaces = 0
             fBw = cv2.equalizeHist(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
-        if config.computing.body_detection_en:
-            fBody, rectsBody = detectPerson(f, color=(255, 0, 0))
-            if len(rectsBody) > 0:
-                fRects = cv2.add(fRects, fBody)
-                numBodies = len(rectsBody)
-                rectsSal.extend(rectsBody)
+            if config.computing.body_detection_en:
+                fBody, rectsBody = detectPerson(f, color=(255, 0, 0))
+                if len(rectsBody) > 0:
+                    fRects = cv2.add(fRects, fBody)
+                    numBodies = len(rectsBody)
+                    rectsSal.extend(rectsBody)
 
-        if config.computing.face_detection_en:
-            fFace, rectsFace = detectFace(fBw, color=(0, 255, 0))
-            if len(rectsFace) > 0:
-                fRects = cv2.add(fRects, fFace)
-                numFaces = len(rectsFace)
-                rectsSal.extend(rectsFace)
+            if config.computing.face_detection_en:
+                fFace, rectsFace = detectFace(fBw, color=(0, 255, 0))
+                if len(rectsFace) > 0:
+                    fRects = cv2.add(fRects, fFace)
+                    numFaces = len(rectsFace)
+                    rectsSal.extend(rectsFace)
 
         fRects = imutils.resize(fRects, width=fCopy.shape[1])
         q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(
