@@ -3,10 +3,10 @@
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
-pushd ffmpeg &> /dev/null
+pushd $(readlink -m $SCRIPT_DIR/../external/ffmpeg) &> /dev/null
 
 ./configure \
---prefix=/usr/local
+--prefix=/usr/local \
 --enable-libxvid \
 --enable-libx264 \
 --enable-libopenh264 \

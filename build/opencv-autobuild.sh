@@ -5,9 +5,10 @@
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
-pushd $SCRIPT_DIR &> /dev/null
+# go to the opencv source repo
+pushd $(readlink -m $SCRIPT_DIR/../external) &> /dev/null
 pushd opencv &> /dev/null
-OPENCV_CONTRIB_PATH=$(readlink -m ${SCRIPT_DIR}/opencv_contrib/modules)
+OPENCV_CONTRIB_PATH=$(readlink -m ../opencv_contrib/modules)
 echo "OpenCV Contrib Path: $OPENCV_CONTRIB_PATH"
 
 if [ -d $OPENCV_CONTRIB_PATH ]; then
