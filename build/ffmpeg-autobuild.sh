@@ -9,8 +9,6 @@ pushd $(readlink -m $SCRIPT_DIR/../external/ffmpeg) &> /dev/null
 --prefix=/usr/local \
 --enable-libxvid \
 --enable-libx264 \
---enable-libopenh264 \
---enable-libopencv \
 --enable-libv4l2 \
 --enable-pic \
 --enable-shared \
@@ -19,6 +17,9 @@ pushd $(readlink -m $SCRIPT_DIR/../external/ffmpeg) &> /dev/null
 --disable-htmlpages \
 --disable-podpages \
 --disable-txtpages
+
+# --enable-libopenh264
+# --enable-libopencv
 
 make -j$(nproc)
 sudo make install
