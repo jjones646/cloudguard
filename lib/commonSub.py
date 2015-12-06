@@ -85,9 +85,9 @@ def draw_str(dst, target, s, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, c
     elif imutils.is_cv2():
         line_style = cv2.cv.CV_LINE_AA
     cv2.putText(dst, s, (x + 1, y + 1), fontFace, fontScale,
-                bgcolor, thickness=thickness + 1, lineType=line_style)
+                bgcolor, thickness=thickness + 1)
     cv2.putText(dst, s, (x, y), fontFace, fontScale, color,
-                thickness=thickness, lineType=line_style)
+                thickness=thickness)
 
 
 def clock():
