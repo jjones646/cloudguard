@@ -62,38 +62,43 @@ contourThresh = int(
 # display the window if it's enabled in the config
 if config.window.enabled:
 
-    def updateSubHist(x):
-        config.computing.bg_sub_hist = x
-
-    def updatebgSubThresh(x):
-        config.computing.bg_sub_thresh = x
+        # create the window
+    cv2.namedWindow(config.window.name)
 
     def updateProcessingWidth(x):
         config.computing.width = x
 
-    # create the window
-    cv2.namedWindow(config.window.name)
+    # porting all this into opencv2.4 is a real pain, so just cv3
+    if imutils.is_cv3():
+        def updateSubHist(x):
+            config.computing.bg_sub_hist = x
 
-    # trackbars for the window gui
-    cv2.createTrackbar(
-        'Motion Hist.', config.window.name, 0, 800, updateSubHist)
-    cv2.createTrackbar(
-        'Motion Thresh.', config.window.name, 0, 40, updatebgSubThresh)
+        def updatebgSubThresh(x):
+            config.computing.bg_sub_thresh = x
+
+        # trackbars for the window gui
+        cv2.createTrackbar(
+            'Motion Hist.', config.window.name, 0, 800, updateSubHist)
+        cv2.createTrackbar(
+            'Motion Thresh.', config.window.name, 0, 40, updatebgSubThresh)
+        # set initial positions
+        cv2.setTrackbarPos(
+            'Motion Hist.', config.window.name, config.computing.bg_sub_hist)
+        cv2.setTrackbarPos(
+            'Motion Thresh.', config.window.name, int(config.computing.bg_sub_thresh))
+
     cv2.createTrackbar('Processing Width', config.window.name,
                        200, config.camera.res[1], updateProcessingWidth)
-    # set initial positions
-    cv2.setTrackbarPos(
-        'Motion Hist.', config.window.name, config.computing.bg_sub_hist)
-    cv2.setTrackbarPos(
-        'Motion Thresh.', config.window.name, int(config.computing.bg_sub_thresh))
     cv2.setTrackbarPos(
         'Processing Width', config.window.name, config.computing.width)
 
 # background subtractor
 if imutils.is_cv3():
-    fgbg = cv2.createBackgroundSubtractorMOG2()
+    fgbg = cv2.createBackgroundSubtractorMOG2(
+        config.computing.bg_sub_hist, config.computing.bg_sub_thresh)
 elif imutils.is_cv2():
-    fgbg = cv2.BackgroundSubtractorMOG2()
+    fgbg = cv2.BackgroundSubtractorMOG2(
+        config.computing.bg_sub_hist, config.computing.bg_sub_thresh)
 
 
 def getMotions(f, fMask, thickness=1, color=(170, 170, 170)):
@@ -261,7 +266,8 @@ if __name__ == '__main__':
         fcc = cv2.VideoWriter_fourcc(*"XVID")
     elif imutils.is_cv2():
         fcc = cv2.cv.CV_FOURCC(*"XVID")
-    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=fcc, fps=config.camera.fps, frameSize=config.camera.res)
+    vwParams = dict(filename=join(vsDir, str(
+        "null" + vWfn[1])), fourcc=fcc, fps=config.camera.fps, frameSize=config.camera.res)
     vW = None
     while True:
         while len(pending) > 0 and pending[0].ready():
@@ -364,16 +370,19 @@ if __name__ == '__main__':
                     MFA = False
                     vW = None
 
-        ch = cv2.waitKey(5)
-
-        # update the slider values to the background model and
-        # bind tasks to keystrokes if the window is enabled
         if config.window.enabled:
-            # refresh the background subtraction parameters
-            bgSh = cv2.getTrackbarPos('Motion Hist.', config.window.name)
-            bgSt = cv2.getTrackbarPos('Motion Thresh.', config.window.name)
-            fgbg.setHistory(bgSh)
-            fgbg.setVarThreshold(bgSt)
+            # update the slider values to the background model and
+            # bind tasks to keystrokes if the window is enabled
+
+            # only with opencv3
+            if imutils.is_cv3():
+                # refresh the background subtraction parameters
+                bgSh = cv2.getTrackbarPos('Motion Hist.', config.window.name)
+                bgSt = cv2.getTrackbarPos('Motion Thresh.', config.window.name)
+                fgbg.setHistory(bgSh)
+                fgbg.setVarThreshold(bgSt)
+
+            ch = cv2.waitKey(2)
 
             # space
             if (ch & 0xff) == ord(' '):
