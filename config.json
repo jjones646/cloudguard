@@ -6,8 +6,8 @@
             "name": "CloudGuard",
             "enabled": true,
             "overlay_enabled": true,
-            "font_size_stats": 0.2,
-            "font_size_timestamp": 0.4,
+            "font_size_stats": 0.3,
+            "font_size_timestamp": 0.45,
             "border_x": 20,
             "border_y": 20,
             "spacing_y": 10
