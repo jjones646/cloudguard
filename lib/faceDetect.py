@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+'''
+    Defines classes for parsing the json config file into an object.
+'''
+
+# Python 2/3 compatibility
+from __future__ import print_function
+
 import sys
 import imutils
 import cv2
@@ -5,12 +13,14 @@ import numpy as np
 import __main__ as main
 from os.path import *
 
-cascade_fn = [abspath(join(dirname(realpath(main.__file__)), "haarcascades/haarcascade_upperbody.xml")), abspath(join(dirname(realpath(main.__file__)), "haarcascades/haarcascade_frontalface_alt.xml"))]
+cascade_fn = [abspath(join(dirname(realpath(main.__file__)), "haarcascades/haarcascade_upperbody.xml")),
+              abspath(join(dirname(realpath(main.__file__)), "haarcascades/haarcascade_frontalface_alt.xml"))]
 cascade = [cv2.CascadeClassifier(fn) for fn in cascade_fn]
 
 
 def detect(f, cas, sf=1.3, mn=3, ms=(28, 35), mxs=(0, 0)):
-    rects = cas.detectMultiScale(f, scaleFactor=sf, minNeighbors=mn, minSize=ms, maxSize=mxs, flags=cv2.CASCADE_SCALE_IMAGE)
+    rects = cas.detectMultiScale(
+        f, scaleFactor=sf, minNeighbors=mn, minSize=ms, maxSize=mxs, flags=cv2.CASCADE_SCALE_IMAGE)
     if len(rects) == 0:
         return []
     rects[:, 2:] += rects[:, :2]
