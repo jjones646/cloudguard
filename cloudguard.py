@@ -6,62 +6,35 @@
 # Python 2/3 compatibility
 from __future__ import print_function
 
-import os, sys, time
+import os
+import sys
 import imutils
 import cv2
-import usb.core, usb.util
-import logging
-import json
 import numpy as np
 import __main__ as main
 from datetime import datetime, timedelta
 from os.path import *
-from multiprocessing import Process, Queue, Lock, cpu_count
+from multiprocessing import Queue, cpu_count
 from multiprocessing.pool import ThreadPool
 from collections import deque
-from pprint import pprint
+# from pprint import pprint
 # local imports
 sDir = abspath(dirname(realpath(main.__file__)))
 sys.path.insert(0, join(sDir, "lib"))
-from commonSub import clock, draw_str, StatValue, getsize, grabFnDate, decode_fourcc
+from commonSub import clock, draw_str, StatValue, getsize, grabFnDate
 from personDetect import detectPerson
-from faceDetect import detectFace, drawFrame
-from configParse import decodeConfig, dump_config
+from faceDetect import detectFace
+from sysConfig import SysConfig
 
 # set directory for the path to this script
 configFn = join(join(sDir, "config.json"))
-configFn2 = join(join(sDir, "config2.json"))
 vsDir = join(sDir, "vid-streams")
-# testbench_fn = join(sDir, "testbench_footage_003.mp4")
 
-if not isfile(configFn):
-    print("No config file found!")
-    os._exit(100)
+config = SysConfig(configFn).configblock
+config.show()
 
-# read config file
-try:
-    with open(configFn, "r") as cfile:
-        config = json.load(cfile, object_hook=decodeConfig)
-except IOError as e:
-    print(e)
-    os._exit(110)
-except Exception as e:
-    print("Error parsing json config file!")
-    print(e)
-    os._exit(120)
-
-
-# function for resaving the config file
-def saveConfig():
-    if config is not None:
-        try:
-            with open(configFn2, 'w') as cfile:
-                json.dump(config, cfile)
-        except:
-            print("Error saving config values!")
-
-
-fontParams = dict(fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.45, thickness=1)
+fontParams = dict(
+    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.45, thickness=1)
 
 # 'Last Motion Timestamp'
 LMT = datetime.utcnow()
@@ -70,23 +43,7 @@ LMT = datetime.utcnow()
 MFA = False
 
 # timeout for the LMT (seconds)
-lmtTo = timedelta(seconds=5)
-
-# find out how many cameras are connected
-try:
-    devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(bDeviceClass=0x10), usb.core.find(bDeviceClass=0xef)]
-    devs = [x for x in devs if x is not None]
-    devsP = ""
-    if len(devs) == 0:
-        print("No USB video devices found!")
-        os._exit(130)
-    elif len(devs) > 1:
-        devsP = "s"
-    print("--  {} audio/video USB device{} detected".format(len(devs), devsP))
-    for d in devs:
-        print("--  USB device found at {:04X}:{:04X}".format(d.idVendor, d.idProduct))
-except:
-    pass
+lmtTo = timedelta(seconds=config.computing.last_motion_timeout)
 
 # this selects the first camera found camera
 cap = cv2.VideoCapture(-1)
@@ -115,15 +72,17 @@ try:
     else:
         print("OpenCV not compiled with camera resolution properties!")
 except:
-    print("Unable to set resolution to {0}x{1}!".format(*config.camera.res))
-    print("Unable to set resolution to {0}x{1}!".format(*config.camera.res))
+    print("Unable to set resolution to {}x{}!".format(*config.camera.res))
+    print("Unable to set resolution to {}x{}!".format(*config.camera.res))
 finally:
-    config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    print("--  resolution: {0}x{1}".format(*config.camera.res))
+    config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(
+        cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    print("--  resolution: {}x{}".format(*config.camera.res))
 
 # compute a contour threshold for indicating whether or not an actual
 # object was detected - computed from the frame width for simplicity
-contourThresh = int(2100 * (float(config.computing.width) / config.camera.res[0]))
+contourThresh = int(
+    2100 * (float(config.computing.width) / config.camera.res[0]))
 
 # display the window if it's enabled in the config
 if config.window.enabled:
@@ -141,27 +100,34 @@ if config.window.enabled:
     cv2.namedWindow(config.window.name)
 
     # trackbars for the window gui
-    cv2.createTrackbar('Motion Hist.', config.window.name, 0, 800, updateSubHist)
-    cv2.createTrackbar('Motion Thresh.', config.window.name, 0, 40, updatebgSubThresh)
-    cv2.createTrackbar('Processing Width', config.window.name, 200, config.camera.res[1], updateProcessingWidth)
+    cv2.createTrackbar(
+        'Motion Hist.', config.window.name, 0, 800, updateSubHist)
+    cv2.createTrackbar(
+        'Motion Thresh.', config.window.name, 0, 40, updatebgSubThresh)
+    cv2.createTrackbar('Processing Width', config.window.name,
+                       200, config.camera.res[1], updateProcessingWidth)
     # set initial positions
-    cv2.setTrackbarPos('Motion Hist.', config.window.name, config.computing.bg_sub_hist)
-    cv2.setTrackbarPos('Motion Thresh.', config.window.name, int(config.computing.bg_sub_thresh))
-    cv2.setTrackbarPos('Processing Width', config.window.name, config.computing.width)
+    cv2.setTrackbarPos(
+        'Motion Hist.', config.window.name, config.computing.bg_sub_hist)
+    cv2.setTrackbarPos(
+        'Motion Thresh.', config.window.name, config.computing.bg_sub_thresh)
+    cv2.setTrackbarPos(
+        'Processing Width', config.window.name, config.computing.width)
 
 # background subtractor
 fgbg = cv2.createBackgroundSubtractorMOG2()
-pprint(fgbg)
-bg_mutex = Lock()
 
-# pprint(fgbg)
-dump_config(config)
 
 def getMotions(f, fMask, thickness=1, color=(170, 170, 170)):
     rectsMot = []
     fRects = np.zeros(f.shape, np.uint8)
     # get contours
-    _, cnts, hierarchy = cv2.findContours(fMask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if imutils.is_cv3():
+        _, cnts, hierarchy = cv2.findContours(
+            fMask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    elif imutils.is_cv2():
+        cnts, hierarchy = cv2.findContours(
+            fMask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # loop over the contours
     for c in cnts:
         # if the contour is too small, ignore it
@@ -203,8 +169,10 @@ def processResponse(q):
 
         if config.storage.save_cloud_crops or config.storage.save_local_crops:
             if len(bx) > 0:
-                xx = tuple((min([min(x[0], x[0] + x[2]) for x in bx]), max([max(x[0], x[0] + x[2]) for x in bx])))
-                yy = tuple((min([min(x[1], x[1] + x[3]) for x in bx]), max([max(x[1], x[1] + x[3]) for x in bx])))
+                xx = tuple(
+                    (min([min(x[0], x[0] + x[2]) for x in bx]), max([max(x[0], x[0] + x[2]) for x in bx])))
+                yy = tuple(
+                    (min([min(x[1], x[1] + x[3]) for x in bx]), max([max(x[1], x[1] + x[3]) for x in bx])))
                 # only continue if the area of is not zero
                 if abs(yy[0] - yy[1]) > 0 and abs(xx[0] - xx[1]) > 0:
                     fMask = f[min(yy):max(yy), min(xx):max(xx)]
@@ -212,20 +180,25 @@ def processResponse(q):
                     if (clock() - lastUp) > config.storage.min_upload_delay:
                         biggestCropArea = 0
                     # Always send the frames that contain detected people/faces.
-                    # If detecting people/faces is disabled in the config, it is not affected.
+                    # If detecting people/faces is disabled in the config, it
+                    # is not affected.
                     if (cropArea > biggestCropArea) or data["numBodies"] > 0 or data["numFaces"] > 0:
                         biggestCropArea = cropArea
-                        rootP = join(join(sDir, "cropped-regions"), grabFnDate())
+                        rootP = join(
+                            join(sDir, "cropped-regions"), grabFnDate())
                         fn = rootP + "_regions.jpg"
-                        res, img = cv2.imencode(".jpg", fMask, [int(cv2.IMWRITE_JPEG_QUALITY), config.storage.quality])
+                        res, img = cv2.imencode(
+                            ".jpg", fMask, [int(cv2.IMWRITE_JPEG_QUALITY), config.storage.quality])
                         if res and config.storage.save_local_crops:
                             print("saving frame locally: {}".format(rootP))
                             # todo: save locally
                         if res and config.storage.save_cloud_crops:
                             lastUp = clock()
                             img = img.tostring()
-                            print("uploading frame to s3: {}".format(basename(fn)))
-                            print("-- time since last upload: {}s".format(clock() - lastUp))
+                            print(
+                                "uploading frame to s3: {}".format(basename(fn)))
+                            print(
+                                "-- time since last upload: {}s".format(clock() - lastUp))
                             s3.Object("cloudguard-in",
                                       basename(fn)).put(Body=img,
                                                         Metadata={"Content-Type": "Image/jpeg",
@@ -234,9 +207,6 @@ def processResponse(q):
                                                                   "Number-Detected-Faces": str(data["numFaces"]),
                                                                   "Captured-Timestamp": str(ts),
                                                                   "Captured-Timestamp-Timezone": "UTC"})
-
-
-
 
 
 def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=False, gBlur=(9, 9)):
@@ -251,11 +221,10 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
     if width is not False:
         f = imutils.resize(f, width=width)
     # blur & bg sub
-    fgmask2 = cv2.GaussianBlur(f, gBlur, 0)
+    fgmask = cv2.GaussianBlur(f, gBlur, 0)
     print('aye!')
     try:
-        with bg_mutex:
-            fgmask = bgm.apply(f.copy())
+        fgmask = fgbg.apply(fgmask)
     except Exception as e:
         print(e)
     print('aye!!')
@@ -263,11 +232,12 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
     fRects, rectsMot = getMotions(f, fgmask, thickness=1)
     rectsSal.extend(rectsMot)
     numMotion = len(rectsMot)
-    
+
     if True:
         # don't do anything else if there's no motion of any kind detected
         # if numMotion > 0 or mfa is True:
-        # generate a histogram equalized bw image if we're doing processing that needs it
+        # generate a histogram equalized bw image if we're doing processing
+        # that needs it
         if config.computing.body_detection_en or config.computing.face_detection_en:
             numBodies = 0
             numFaces = 0
@@ -287,7 +257,8 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
                 rectsSal.extend(rectsFace)
 
         fRects = imutils.resize(fRects, width=fCopy.shape[1])
-        q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
+        q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(
+            f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
         print('bye!')
     return f, fRects, rectsSal, tick, ts
 
@@ -308,7 +279,8 @@ if __name__ == '__main__':
     last_frame_time = clock()
     streamId = 0
     vWfn = ["vidStream", ".avi"]
-    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=cv2.VideoWriter_fourcc(*'XVID'), fps=config.camera.fps, frameSize=config.camera.res)
+    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=cv2.VideoWriter_fourcc(
+        *'XVID'), fps=config.camera.fps, frameSize=config.camera.res)
     vW = None
     while True:
         while len(pending) > 0 and pending[0].ready():
@@ -321,22 +293,27 @@ if __name__ == '__main__':
                 sz = frame.shape
                 roi = frame[0:sz[0], 0:sz[1]]
                 frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)
-                _, frameMask = cv2.threshold(frameMask, 10, 255, cv2.THRESH_BINARY)
-                frameBg = cv2.bitwise_and(roi, roi, mask=cv2.bitwise_not(frameMask))
+                _, frameMask = cv2.threshold(
+                    frameMask, 10, 255, cv2.THRESH_BINARY)
+                frameBg = cv2.bitwise_and(
+                    roi, roi, mask=cv2.bitwise_not(frameMask))
                 frameMaskFg = cv2.bitwise_and(fRects, fRects, mask=frameMask)
                 frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
 
             # overlay a timestamp
             ts = ts.strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
-            draw_str(frame, (10, frame.shape[0] - 10), "{}".format(ts), fontScale=0.6, color=(120, 120, 255))
+            draw_str(frame, (10, frame.shape[
+                     0] - 10), "{}".format(ts), fontScale=0.6, color=(120, 120, 255))
 
             if config.window.overlay_en:
-                # the number that we should display for how many threads are currently working
+                # the number that we should display for how many threads are
+                # currently working
                 if config.computing.threading_en:
                     threadDis = threadN
                 else:
                     threadDis = 1
-                statStrings = ["threads: {:<d}".format(threadDis), "res: {1:>d}x{0:<d}".format(*fRects.shape), "latency: {:>6.1f}ms".format(latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
+                statStrings = ["threads: {:<d}".format(threadDis), "res: {1:>d}x{0:<d}".format(*fRects.shape), "latency: {:>6.1f}ms".format(
+                    latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
                 txtSz = cv2.getTextSize(statStrings[0], **fontParams)
                 xOffset = config.window.border_x
                 yOffset = txtSz[0][1] + config.window.border_y
@@ -344,14 +321,17 @@ if __name__ == '__main__':
                 j = 0
                 while True:
                     if xOffset != config.window.border_x:
-                        statStrings[j] = config.const.overlay_delim + statStrings[j]
+                        statStrings[
+                            j] = config.const.overlay_delim + statStrings[j]
                     txtSz = cv2.getTextSize(statStrings[j], **fontParams)
                     txtSz = txtSz[0]
                     xOffset += txtSz[0]
                     if xOffset > (sz[1] - config.window.border_x):
-                        draw_str(frame, (config.window.border_x, yOffset), tStr, **fontParams)
+                        draw_str(
+                            frame, (config.window.border_x, yOffset), tStr, **fontParams)
                         yOffset += txtSz[1] + config.window.spacing_y
-                        statStrings[j] = statStrings[j][len(config.const.overlay_delim):]
+                        statStrings[j] = statStrings[j][
+                            len(config.const.overlay_delim):]
                         tStr = ""
                         xOffset = config.window.border_x
                     else:
@@ -360,7 +340,8 @@ if __name__ == '__main__':
                     if j > len(statStrings) - 1:
                         break
 
-                draw_str(frame, (config.window.border_x, yOffset), tStr, **fontParams)
+                draw_str(
+                    frame, (config.window.border_x, yOffset), tStr, **fontParams)
 
             # update the window if it's enabled
             if config.window.enabled:
@@ -381,17 +362,20 @@ if __name__ == '__main__':
             frame_interval.update(t - last_frame_time)
             last_frame_time = t
             ts = datetime.utcnow()
-            task = pool.apply_async(processMotionFrame, args=(q, f, t, ts, fgbg, MFA, config.camera.rot, config.computing.width))
+            task = pool.apply_async(processMotionFrame, args=(
+                q, f, t, ts, fgbg, MFA, config.camera.rot, config.computing.width))
             pending.append(task)
 
         # save a local video stream of detection motion if enabled
         if config.storage.save_local_vids:
-            # motion has just begun, generate a new filename and write the first frame
+            # motion has just begun, generate a new filename and write the
+            # first frame
             if (datetime.utcnow() - LMT) < lmtTo:
                 if MFA is False:
                     MFA = True
                     streamId += 1
-                    vwParams["filename"] = join(vsDir, str(vWfn[0] + "_{:04d}_".format(streamId) + grabFnDate() + vWfn[1]))
+                    vwParams["filename"] = join(
+                        vsDir, str(vWfn[0] + "_{:04d}_".format(streamId) + grabFnDate() + vWfn[1]))
                     vW = cv2.VideoWriter(**vwParams)
             # no activity
             else:
@@ -399,7 +383,7 @@ if __name__ == '__main__':
                     MFA = False
                     vW = None
 
-        ch = cv2.waitKey(1)
+        ch = cv2.waitKey(5)
 
         # update the slider values to the background model and
         # bind tasks to keystrokes if the window is enabled
@@ -418,12 +402,12 @@ if __name__ == '__main__':
                 config.camera.rot -= 90
                 config.camera.rot %= 360
                 # saveConfig()
-            # right arrow key
+                # right arrow key
             if ch == 65363:
                 config.camera.rot += 90
                 config.camera.rot %= 360
                 # saveConfig()
-            # escape
+                # escape
             if (ch & 0xff) == 27:
                 break
 

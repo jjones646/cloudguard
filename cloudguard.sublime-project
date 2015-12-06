@@ -1,10 +1,40 @@
 {
-	"folders":
-	[
-		{
-			"path": ".",
-			"file_exclude_patterns": ["*.sublime-*"],
-			"folder_exclude_patterns": ["crop-regions", "vid-streams", "*bak"]
-		}
-	]
+    "folders":
+    [
+        {
+            "path": ".",
+            "name": "CloudGuard",
+            "file_exclude_patterns": [".*", "*.sublime-workspace", "*.pdf", "*.*~", "setup.sh", "ffmpeg", "opencv", "opencv_contrib"],
+            "folder_exclude_patterns": ["crop-regions", "vid-streams", "*bak", "haarcascades"]
+        }
+    ],
+    "settings":
+    {
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true,
+        "bold_folder_labels": true,
+        "flake8lint": {
+            "python_interpreter": "auto",
+            "live_mode_lint_delay": 1500,
+            "builtins": [],
+            "pyflakes": true,
+            "pep8": true,
+            "naming": true,
+            "complexity": -1,
+            "pep8_max_line_length": 110,
+            "select": [],
+            "ignore": ["E123", "E226", "E24"],
+            "ignore_files": []
+        },
+        "sublimeautopep8": {
+            "max-line-length": 110,
+            "format_on_save": false,
+            "show_output_panel": true,
+            // show Format/Preview menu items only for views
+            // with syntax from `syntax_list`
+            // value is base filename of the .tmLanguage syntax files
+            "syntax_list": ["Python"],
+            "file_menu_search_depth": 3  // max depth to search python files
+        }
+    }
 }
