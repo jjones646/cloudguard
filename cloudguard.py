@@ -279,7 +279,7 @@ if __name__ == '__main__':
             print(rectsSal)
             # overlay the rectangles if motion was detected
             # if len(rectsSal) > 0:
-            if false:
+            if False:
                 LMT = ts
                 sz = frame.shape
                 roi = frame[0:sz[0], 0:sz[1]]
