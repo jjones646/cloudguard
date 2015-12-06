@@ -257,8 +257,11 @@ if __name__ == '__main__':
     last_frame_time = clock()
     streamId = 0
     vWfn = ["vidStream", ".avi"]
-    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=cv2.VideoWriter_fourcc(
-        *'XVID'), fps=config.camera.fps, frameSize=config.camera.res)
+    if imutils.is_cv3():
+        fcc = cv2.VideoWriter_fourcc(*"XVID")
+    elif imutils.is_cv2():
+        fcc = cv2.cv.CV_FOURCC(*"XVID")
+    vwParams = dict(filename=join(vsDir, str("null" + vWfn[1])), fourcc=fcc, fps=config.camera.fps, frameSize=config.camera.res)
     vW = None
     while True:
         while len(pending) > 0 and pending[0].ready():
