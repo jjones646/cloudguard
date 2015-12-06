@@ -24,6 +24,7 @@ from commonSub import clock, draw_str, StatValue, getsize, grabFnDate
 from personDetect import detectPerson
 from faceDetect import detectFace
 from sysConfig import SysConfig
+import camProps
 
 # set directory for the path to this script
 configFn = join(join(sDir, "config.json"))
@@ -50,37 +51,8 @@ cap = cv2.VideoCapture(-1)
 if not cap.isOpened():
     print("Unable to connect with camera!")
     os._exit(140)
-
-# set the framerate as specified at the top
-try:
-    if hasattr(cv2, "CAP_PROP_FPS"):
-        cap.set(cv2.CAP_PROP_FPS, config.camera.fps)
-        config.camera.fps = cap.get(cv2.CAP_PROP_FPS)
-    else:
-        print("OpenCV not compiled with camera framerate property!")
-except:
-    print("Unable to set framerate to {:.1f}!".format(config.camera.fps))
-    if hasattr(cv2, "CAP_PROP_FPS"):
-        config.camera.fps = cap.get(cv2.CAP_PROP_FPS)
-finally:
-    print("--  framerate: {}".format(config.camera.fps))
-
-# set the resolution as specified at the top
-try:
-    if hasattr(cv2, "CAP_PROP_FRAME_WIDTH"):
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.camera.res[0])
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.camera.res[1])
-        config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(
-            cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    else:
-        print("OpenCV not compiled with camera resolution properties!")
-except:
-    print("Unable to set resolution to {}x{}!".format(*config.camera.res))
-    if hasattr(cv2, "CAP_PROP_FRAME_WIDTH"):
-        config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(
-            cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-finally:
-    print("--  resolution: {}x{}".format(*config.camera.res))
+else:
+    camProps.init_props(cap, config)
 
 # compute a contour threshold for indicating whether or not an actual
 # object was detected - computed from the frame width for simplicity

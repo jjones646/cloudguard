@@ -30,6 +30,7 @@ class CameraConfig(object):
         self.res = tuple(data["resolution"])
         self.fps = float(data["fps"])
         self.rot = int(data["rotation"])
+        self.fourcc = None
 
 
 class ComputingConfig(object):
