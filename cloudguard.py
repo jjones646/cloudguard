@@ -204,7 +204,7 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
     '''
     rectsSal = []
     fgmask = None
-    # fCopy = f.copy()
+    fCopy = f.copy()
     if rotateAng is not False and rotateAng != 0:
         f = imutils.rotate(f, angle=rotateAng)
     if width is not False:
