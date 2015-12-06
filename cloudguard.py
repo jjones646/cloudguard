@@ -279,9 +279,9 @@ if __name__ == '__main__':
             print(rectsSal)
             # overlay the rectangles if motion was detected
             # if len(rectsSal) > 0:
+            sz = frame.shape
             if False:
                 LMT = ts
-                sz = frame.shape
                 roi = frame[0:sz[0], 0:sz[1]]
                 frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)
                 _, frameMask = cv2.threshold(
