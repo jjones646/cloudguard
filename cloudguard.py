@@ -62,6 +62,9 @@ contourThresh = int(
 # display the window if it's enabled in the config
 if config.window.enabled:
 
+        # create the window
+    cv2.namedWindow(config.window.name, CV_WINDOW_AUTOSIZE)
+
     def updateProcessingWidth(x):
         config.computing.width = x
 
