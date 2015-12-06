@@ -15,7 +15,7 @@
         "camera": {
             "__type__": "camera_config",
             "resolution": [
-                480, 640
+                640, 480
             ],
             "fps": 10,
             "rotation": 0

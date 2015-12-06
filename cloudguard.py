@@ -242,6 +242,7 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
                     numFaces = len(rectsFace)
                     rectsSal.extend(rectsFace)
 
+        print(fCopy.shape)
         fRects = imutils.resize(fRects, width=fCopy.shape[1])
         q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(
             f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
