@@ -276,11 +276,10 @@ if __name__ == '__main__':
         while len(pending) > 0 and pending[0].ready():
             frame, fRects, rectsSal, tick, ts = pending.popleft().get()
             latency.update(clock() - tick)
-            print(rectsSal)
-            # overlay the rectangles if motion was detected
-            # if len(rectsSal) > 0:
             sz = frame.shape
-            if False:
+            # overlay the rectangles if motion was detected
+            if len(rectsSal) > 0:
+                # if False:
                 LMT = ts
                 roi = frame[0:sz[0], 0:sz[1]]
                 frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)

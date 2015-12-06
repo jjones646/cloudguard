@@ -25,7 +25,7 @@
             "width": 240,
             "bg_sub_thresh": 5,
             "bg_sub_hist": 350,
-            "threading_enabled": false,
+            "threading_enabled": true,
             "face_detection_enabled": false,
             "body_detection_enabled": false,
             "last_motion_timeout": 5
