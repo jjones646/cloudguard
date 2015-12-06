@@ -116,7 +116,12 @@ def getMotions(f, fMask, thickness=1, color=(170, 170, 170)):
         # if the contour is too small, ignore it
         if cv2.contourArea(c) < contourThresh:
             continue
-        box = cv2.boxPoints(cv2.minAreaRect(c))
+
+        if imutils.is_cv3():
+            box = cv2.boxPoints(cv2.minAreaRect(c))
+        elif imutils.is_cv2():
+            box = cv2.cv.BoxPoints(cv2.minAreaRect(c))
+
         box = np.int0(box)
         cv2.drawContours(fRects, [box], 0, color, thickness)
         rectsMot.append(cv2.boundingRect(c))
