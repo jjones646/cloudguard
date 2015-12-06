@@ -11,7 +11,6 @@ import sys
 import imutils
 import cv2
 import numpy as np
-import __main__ as main
 from datetime import datetime, timedelta
 from os.path import *
 from multiprocessing import Queue, cpu_count
@@ -19,7 +18,7 @@ from multiprocessing.pool import ThreadPool
 from collections import deque
 # from pprint import pprint
 # local imports
-sDir = abspath(dirname(realpath(main.__file__)))
+sDir = abspath(dirname(realpath(__file__)))
 sys.path.insert(0, join(sDir, "lib"))
 from commonSub import clock, draw_str, StatValue, getsize, grabFnDate
 from personDetect import detectPerson
@@ -54,29 +53,33 @@ if not cap.isOpened():
 
 # set the framerate as specified at the top
 try:
-    if cv2.CAP_PROP_FPS is not None:
+    if hasattr(cv2, "CAP_PROP_FPS"):
         cap.set(cv2.CAP_PROP_FPS, config.camera.fps)
+        config.camera.fps = cap.get(cv2.CAP_PROP_FPS)
     else:
         print("OpenCV not compiled with camera framerate property!")
 except:
     print("Unable to set framerate to {:.1f}!".format(config.camera.fps))
+    if hasattr(cv2, "CAP_PROP_FPS"):
+        config.camera.fps = cap.get(cv2.CAP_PROP_FPS)
 finally:
-    config.camera.fps = cap.get(cv2.CAP_PROP_FPS)
     print("--  framerate: {}".format(config.camera.fps))
 
 # set the resolution as specified at the top
 try:
-    if cv2.CAP_PROP_FRAME_WIDTH is not None:
+    if hasattr(cv2, "CAP_PROP_FRAME_WIDTH"):
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.camera.res[0])
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.camera.res[1])
+        config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(
+            cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     else:
         print("OpenCV not compiled with camera resolution properties!")
 except:
     print("Unable to set resolution to {}x{}!".format(*config.camera.res))
-    print("Unable to set resolution to {}x{}!".format(*config.camera.res))
+    if hasattr(cv2, "CAP_PROP_FRAME_WIDTH"):
+        config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(
+            cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 finally:
-    config.camera.res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(
-        cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     print("--  resolution: {}x{}".format(*config.camera.res))
 
 # compute a contour threshold for indicating whether or not an actual
@@ -411,9 +414,9 @@ if __name__ == '__main__':
             if (ch & 0xff) == 27:
                 break
 
-# cleanup
-cap.release()
-cv2.destroyAllWindows()
-p.join()
-p.terminate()
+    # cleanup
+    cap.release()
+    cv2.destroyAllWindows()
+    p.join()
+    p.terminate()
 sys.exit(0)
