@@ -25,7 +25,8 @@
             "bg_sub_hist": 350,
             "threading_enabled": false,
             "face_detection_enabled": false,
-            "body_detection_enabled": false
+            "body_detection_enabled": false,
+            "last_motion_timeout": 5
         },
         "storage": {
             "__type__": "storage_config",
