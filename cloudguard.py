@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 from datetime import datetime, timedelta
 from os.path import *
-from multiprocessing import Queue, cpu_count
+from multiprocessing import Process, Queue, cpu_count
 from multiprocessing.pool import ThreadPool
 from collections import deque
 # from pprint import pprint
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     # pending = deque(maxlen=threadN)
     pending = deque()
     q = Queue()
-    # p = Process(target=processResponse, args=(q, ))
+    p = Process(target=processResponse, args=(q, ))
     # p.start()
     latency = StatValue()
     frame_interval = StatValue()
