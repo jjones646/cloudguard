@@ -19,6 +19,8 @@ class WindowConfig(object):
         self.name = str(data["name"])
         self.enabled = bool(data["enabled"])
         self.overlay_enabled = bool(data["overlay_enabled"])
+        self.font_size_stats = int(data["font_size_stats"])
+        self.font_size_timestamp = int(data["font_size_timestamp"])
         self.border_x = int(data["border_x"])
         self.border_y = int(data["border_y"])
         self.spacing_y = int(data["spacing_y"])

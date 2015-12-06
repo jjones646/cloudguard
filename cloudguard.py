@@ -34,7 +34,7 @@ config = SysConfig(configFn).configblock
 config.show()
 
 fontParams = dict(
-    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.45, thickness=1)
+    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=config.window.font_size_stats, thickness=1)
 
 # 'Last Motion Timestamp'
 LMT = datetime.utcnow()
@@ -294,7 +294,7 @@ if __name__ == '__main__':
             # overlay a timestamp
             ts = ts.strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
             draw_str(frame, (10, frame.shape[
-                     0] - 10), "{}".format(ts), fontScale=0.6, color=(120, 120, 255))
+                     0] - 10), "{}".format(ts), fontScale=config.window.font_size_timestamp, color=(120, 120, 255))
 
             if config.window.overlay_enabled:
                 # the number that we should display for how many threads are
