@@ -264,6 +264,7 @@ if __name__ == '__main__':
     frame_interval = StatValue()
     last_frame_time = clock()
     streamId = 0
+    pipe_ready = False
     vWfn = ["vidStream", ".avi"]
     if imutils.is_cv3():
         fcc = cv2.VideoWriter_fourcc(*"XVID")
@@ -288,6 +289,7 @@ if __name__ == '__main__':
                     roi, roi, mask=cv2.bitwise_not(frameMask))
                 frameMaskFg = cv2.bitwise_and(fRects, fRects, mask=frameMask)
                 frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
+                pipe_ready = True
 
             # overlay a timestamp
             ts = ts.strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
@@ -384,9 +386,11 @@ if __name__ == '__main__':
                 bgSt = cv2.getTrackbarPos('Motion Thresh.', config.window.name)
                 fgbg.setHistory(bgSh)
                 fgbg.setVarThreshold(bgSt)
-                cv2.imshow("Background Model", fgbg.getBackgroundImage())
+                if pipe_ready:
+                    cv2.imshow("Background Model", fgbg.getBackgroundImage())
             else:
-                cv2.imshow("Background Model", fgbg.getMat())
+                if pipe_ready:
+                    cv2.imshow("Background Model", fgbg.getMat())
 
             ch = cv2.waitKey(1)
 
