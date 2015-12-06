@@ -118,7 +118,10 @@ if config.window.enabled:
         'Processing Width', config.window.name, config.computing.width)
 
 # background subtractor
-fgbg = cv2.createBackgroundSubtractorMOG2()
+if imutils.is_cv3():
+    fgbg = cv2.createBackgroundSubtractorMOG2()
+elif imutils.is_cv2():
+    fgbg = cv2.BackgroundSubtractorMOG2()
 
 
 def getMotions(f, fMask, thickness=1, color=(170, 170, 170)):
