@@ -1,0 +1,9 @@
+[submodule "external/ffmpeg"]
+	path = external/ffmpeg
+	url = https://github.com/FFmpeg/FFmpeg
+[submodule "external/opencv"]
+	path = external/opencv
+	url = https://github.com/Itseez/opencv
+[submodule "external/opencv_contrib"]
+	path = external/opencv_contrib
+	url = https://github.com/Itseez/opencv_contrib
