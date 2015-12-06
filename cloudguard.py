@@ -408,6 +408,5 @@ if __name__ == '__main__':
     # cleanup
     cap.release()
     cv2.destroyAllWindows()
-    p.join()
     p.terminate()
 sys.exit(0)
