@@ -282,6 +282,8 @@ if __name__ == '__main__':
                 # if False:
                 LMT = ts
                 roi = frame[0:sz[0], 0:sz[1]]
+                print(len(roi))
+                print(*sz)
                 frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)
                 _, frameMask = cv2.threshold(
                     frameMask, 10, 255, cv2.THRESH_BINARY)
