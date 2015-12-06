@@ -211,7 +211,7 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
         f = imutils.resize(f, width=width)
     # blur & bg sub
     try:
-        fgmask = fgbg.apply(cv2.GaussianBlur(f, gBlur, 0))
+        fgmask = bgm.apply(cv2.GaussianBlur(f, gBlur, 0))
     except Exception as e:
         print(e)
     # get our frame outlines
