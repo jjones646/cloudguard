@@ -5,7 +5,7 @@
             "path": ".",
             "name": "CloudGuard",
             "file_exclude_patterns": [".*", "*.sublime-workspace", "*.pdf", "*.*~", "setup.sh", "ffmpeg", "opencv", "opencv_contrib"],
-            "folder_exclude_patterns": ["crop-regions", "vid-streams", "*bak", "haarcascades"]
+            "folder_exclude_patterns": ["crop-regions", "vid-streams", "*bak", "haarcascades", "external"]
         }
     ],
     "settings":
