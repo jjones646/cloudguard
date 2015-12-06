@@ -295,7 +295,6 @@ if __name__ == '__main__':
                      0] - 10), "{}".format(ts), fontScale=config.window.font_size_timestamp, color=(120, 120, 255))
 
             if config.window.overlay_enabled:
-                print("a")
                 # the number that we should display for how many threads are
                 # currently working
                 if config.computing.threading_en:
