@@ -247,7 +247,7 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
         q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(
             f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
 
-    return f, fRects, rectsSal, tick, ts
+    return fCopy, fRects, rectsSal, tick, ts
 
 
 if __name__ == '__main__':
