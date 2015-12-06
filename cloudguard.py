@@ -295,12 +295,14 @@ if __name__ == '__main__':
                      0] - 10), "{}".format(ts), fontScale=config.window.font_size_timestamp, color=(120, 120, 255))
 
             if config.window.overlay_enabled:
+                print("a")
                 # the number that we should display for how many threads are
                 # currently working
                 if config.computing.threading_en:
                     threadDis = threadN
                 else:
                     threadDis = 1
+
                 statStrings = ["threads: {:<d}".format(threadDis), "res: {1:>d}x{0:<d}".format(*fRects.shape), "latency: {:>6.1f}ms".format(
                     latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
                 txtSz = cv2.getTextSize(statStrings[0], **fontParams)
