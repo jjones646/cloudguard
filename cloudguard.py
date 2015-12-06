@@ -198,19 +198,17 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
     to a new thread when a frame is retreived from the camera.
     '''
     rectsSal = []
+    fgmask = None
     # fCopy = f.copy()
     if rotateAng is not False and rotateAng != 0:
         f = imutils.rotate(f, angle=rotateAng)
     if width is not False:
         f = imutils.resize(f, width=width)
     # blur & bg sub
-    fgmask = cv2.GaussianBlur(f, gBlur, 0)
-    print('aye!')
     try:
-        fgmask = fgbg.apply(fgmask)
+        fgmask = fgbg.apply(cv2.GaussianBlur(f, gBlur, 0))
     except Exception as e:
         print(e)
-    print('aye!!')
     # get our frame outlines
     fRects, rectsMot = getMotions(f, fgmask, thickness=1)
     rectsSal.extend(rectsMot)
@@ -242,7 +240,6 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
         fRects = imutils.resize(fRects, width=fCopy.shape[1])
         q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(
             f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
-        print('bye!')
     return f, fRects, rectsSal, tick, ts
 
 

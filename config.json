@@ -15,7 +15,7 @@
             "resolution": [
                 640, 480
             ],
-            "fps": 16,
+            "fps": 30,
             "rotation": 0
         },
         "computing": {
