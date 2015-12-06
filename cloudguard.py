@@ -242,7 +242,6 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
                     numFaces = len(rectsFace)
                     rectsSal.extend(rectsFace)
 
-        print(fCopy.shape)
         fRects = imutils.resize(fRects, width=fCopy.shape[1])
         q.put({"f": fCopy, "ts": ts, "rectsSal": rectsSal, "szScaled": getsize(
             f), "numMotion": numMotion, "numBodies": numBodies, "numFaces": numFaces})
@@ -279,12 +278,9 @@ if __name__ == '__main__':
             latency.update(clock() - tick)
             sz = frame.shape
             # overlay the rectangles if motion was detected
-            if len(rectsSal) > 0:
-                # if False:
+            if len(rectsSal) > 0 and config.window.overlay_enabled:
                 LMT = ts
                 roi = frame[0:sz[0], 0:sz[1]]
-                print(len(roi))
-                print(*sz)
                 frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)
                 _, frameMask = cv2.threshold(
                     frameMask, 10, 255, cv2.THRESH_BINARY)
