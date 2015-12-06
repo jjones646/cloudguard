@@ -80,10 +80,6 @@ def mtx2rvec(r):
 
 def draw_str(dst, target, s, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255), bgcolor=(0, 0, 0), thickness=1):
     x, y = target
-    if imutils.is_cv3():
-        line_style = cv2.LINE_AA
-    elif imutils.is_cv2():
-        line_style = cv2.cv.CV_LINE_AA
     cv2.putText(dst, s, (x + 1, y + 1), fontFace, fontScale,
                 bgcolor, thickness=thickness + 1)
     cv2.putText(dst, s, (x, y), fontFace, fontScale, color,
