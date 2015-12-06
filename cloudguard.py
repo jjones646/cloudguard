@@ -296,7 +296,7 @@ if __name__ == '__main__':
             draw_str(frame, (10, frame.shape[
                      0] - 10), "{}".format(ts), fontScale=0.6, color=(120, 120, 255))
 
-            if config.window.overlay_en:
+            if config.window.overlay_enabled:
                 # the number that we should display for how many threads are
                 # currently working
                 if config.computing.threading_en:
