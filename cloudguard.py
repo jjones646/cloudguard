@@ -276,7 +276,7 @@ if __name__ == '__main__':
         while len(pending) > 0 and pending[0].ready():
             frame, fRects, rectsSal, tick, ts = pending.popleft().get()
             latency.update(clock() - tick)
-            print(latency.value)
+            print(rectsSal)
             # overlay the rectangles if motion was detected
             if len(rectsSal) > 0:
                 LMT = ts
