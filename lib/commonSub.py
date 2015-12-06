@@ -80,10 +80,14 @@ def mtx2rvec(r):
 
 def draw_str(dst, target, s, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255), bgcolor=(0, 0, 0), thickness=1):
     x, y = target
+    if imutils.is_cv3():
+        line_type = cv2.LINE_AA
+    if imutils.is_cv2():
+        line_type = cv2.cv.CV_AA
     cv2.putText(dst, s, (x + 1, y + 1), fontFace, fontScale,
-                bgcolor, thickness=thickness + 1)
+                bgcolor, thickness=thickness + 1, lineType=line_type)
     cv2.putText(dst, s, (x, y), fontFace, fontScale, color,
-                thickness=thickness)
+                thickness=thickness, lineType=line_type)
 
 
 def clock():

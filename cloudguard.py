@@ -384,7 +384,7 @@ if __name__ == '__main__':
                 fgbg.setHistory(bgSh)
                 fgbg.setVarThreshold(bgSt)
 
-            ch = cv2.waitKey(2)
+            ch = cv2.waitKey(1)
 
             # space
             if (ch & 0xff) == ord(' '):
