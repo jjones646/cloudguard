@@ -197,7 +197,7 @@ def processResponse(q):
                                                                   "Captured-Timestamp-Timezone": "UTC"})
 
 
-def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=False, gBlur=(9, 9)):
+def processMotionFrame(q, f, tick, ts, mfa=False, rotateAng=False, width=False, gBlur=(9, 9)):
     '''
     This function defines the image processing techniques that are applied
     to a new thread when a frame is retreived from the camera.
@@ -211,7 +211,7 @@ def processMotionFrame(q, f, tick, ts, bgm, mfa=False, rotateAng=False, width=Fa
         f = imutils.resize(f, width=width)
     # blur & bg sub
     try:
-        fgmask = bgm.apply(cv2.GaussianBlur(f, gBlur, 0))
+        fgmask = fgbg.apply(cv2.GaussianBlur(f, gBlur, 0))
     except Exception as e:
         print(e)
     # get our frame outlines
@@ -353,7 +353,7 @@ if __name__ == '__main__':
             last_frame_time = t
             ts = datetime.utcnow()
             task = pool.apply_async(processMotionFrame, args=(
-                q, f, t, ts, fgbg, MFA, config.camera.rot, config.computing.width))
+                q, f, t, ts, MFA, config.camera.rot, config.computing.width))
             pending.append(task)
 
         # save a local video stream of detection motion if enabled
@@ -384,6 +384,9 @@ if __name__ == '__main__':
                 bgSt = cv2.getTrackbarPos('Motion Thresh.', config.window.name)
                 fgbg.setHistory(bgSh)
                 fgbg.setVarThreshold(bgSt)
+                cv2.imshow("Background Model", fgbg.getBackgroundImage())
+            else:
+                cv2.imshow("Background Model", fgbg.getMat())
 
             ch = cv2.waitKey(1)
 
