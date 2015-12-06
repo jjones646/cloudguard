@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 '''
-    Defines classes for parsing the json config file into an object.
+    Basic wrapper functions for using OpenCV's Cascade Classifier
+    support for classifying and detecting faces in frames.
 '''
 
 # Python 2/3 compatibility

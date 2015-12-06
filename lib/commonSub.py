@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''
-    This module contains a subset of functions from the official OpenCV examples.
+    This module contains a subset of functions from
+    the official OpenCV examples.
 '''
 
 # Python 2/3 compatibility
@@ -9,11 +10,11 @@ import sys
 PY3 = sys.version_info[0] == 3
 
 import cv2
+import datetime
 import numpy as np
 
 # built-in modules
 import os
-import itertools as it
 from contextlib import contextmanager
 
 image_extensions = [
@@ -34,10 +35,10 @@ def anorm(a):
     return np.sqrt(anorm2(a))
 
 
-def homotrans(H, x, y):
-    xs = H[0, 0] * x + H[0, 1] * y + H[0, 2]
-    ys = H[1, 0] * x + H[1, 1] * y + H[1, 2]
-    s = H[2, 0] * x + H[2, 1] * y + H[2, 2]
+def homotrans(h, x, y):
+    xs = h[0, 0] * x + h[0, 1] * y + h[0, 2]
+    ys = h[1, 0] * x + h[1, 1] * y + h[1, 2]
+    s = h[2, 0] * x + h[2, 1] * y + h[2, 2]
     return xs / s, ys / s
 
 
@@ -52,8 +53,8 @@ def rect2rect_mtx(src, dst):
     src, dst = to_rect(src), to_rect(dst)
     cx, cy = (dst[1] - dst[0]) / (src[1] - src[0])
     tx, ty = dst[0] - src[0] * (cx, cy)
-    M = np.float64([[cx, 0, tx], [0, cy, ty], [0, 0, 1]])
-    return M
+    m = np.float64([[cx, 0, tx], [0, cy, ty], [0, 0, 1]])
+    return m
 
 
 def lookat(eye, target, up=(0, 0, 1)):
@@ -62,13 +63,13 @@ def lookat(eye, target, up=(0, 0, 1)):
     right = np.cross(fwd, up)
     right /= anorm(right)
     down = np.cross(fwd, right)
-    R = np.float64([right, down, fwd])
-    tvec = -np.dot(R, eye)
-    return R, tvec
+    r = np.float64([right, down, fwd])
+    tvec = -np.dot(r, eye)
+    return r, tvec
 
 
-def mtx2rvec(R):
-    w, u, vt = cv2.SVDecomp(R - np.eye(3))
+def mtx2rvec(r):
+    w, u, vt = cv2.SVDecomp(r - np.eye(3))
     p = vt[0] + u[:, 0] * w[0]  # same as np.dot(R, vt[0])
     c = np.dot(vt[0], p)
     s = np.dot(vt[1], p)

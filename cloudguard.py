@@ -110,7 +110,7 @@ if config.window.enabled:
     cv2.setTrackbarPos(
         'Motion Hist.', config.window.name, config.computing.bg_sub_hist)
     cv2.setTrackbarPos(
-        'Motion Thresh.', config.window.name, config.computing.bg_sub_thresh)
+        'Motion Thresh.', config.window.name, int(config.computing.bg_sub_thresh))
     cv2.setTrackbarPos(
         'Processing Width', config.window.name, config.computing.width)
 

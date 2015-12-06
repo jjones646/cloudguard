@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''
-    Defines classes for parsing the json config file into an object.
+    Basic wrapper class for configParse.py that adds class methods
+    for saving and loading the json configuration file.
 '''
 
 # Python 2/3 compatibility

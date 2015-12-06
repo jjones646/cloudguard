@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''
-    Defines classes for parsing the json config file into an object.
+    Basic wrapper functions for using OpenCV's Histogram of 
+    Oriented Gradients Descriptor support in detecting a person.
 '''
 
 # Python 2/3 compatibility

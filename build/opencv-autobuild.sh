@@ -40,9 +40,11 @@ cmake \
 -DWITH_CUFFT=OFF \
 -DWITH_CUBLAS=OFF \
 -DBUILD_TBB=ON \
--DBUILD_SHARED_LIBS=OFF \
+-DBUILD_SHARED_LIBS=ON \
 -DENABLE_VFPV3=ON \
 -DENABLE_NEON=ON \
+-DBUILD_opencv_matlab=OFF \
+-DBUILD_opencv_stereo=OFF \
 -DOPENCV_EXTRA_MODULES_PATH=${OPENCV_CONTRIB_PATH} \
 .. > cmake-setup.log
 
@@ -51,7 +53,7 @@ cmake \
 # -DPYTHON_PACKAGES_PATH=/usr/local/lib/python2.7/site-packages \
 # -DPYTHON_NUMPY_INCLUDE_DIRS=/usr/local/lib/python2.7/dist-packages/numpy/core/include \
 
-sudo make -j$(nproc)
+make -j$(nproc)
 sudo make install
 sudo ldconfig
 

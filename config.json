@@ -4,8 +4,8 @@
         "window": {
             "__type__": "window_config",
             "name": "CloudGuard",
-            "enabled": false,
-            "overlay_enabled": false,
+            "enabled": true,
+            "overlay_enabled": true,
             "border_x": 20,
             "border_y": 20,
             "spacing_y": 10
