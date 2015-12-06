@@ -8,6 +8,7 @@ pushd $SCRIPT_DIR &> /dev/null
 
 # update the repo db
 sudo apt-get update
+sudo apt-get install build-essential linux-headers-$(uname -r)
 
 # update the git submodules
 pushd .. &> /dev/null

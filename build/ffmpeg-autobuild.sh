@@ -5,8 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 pushd $(readlink -m $SCRIPT_DIR/../external/ffmpeg) &> /dev/null
 
+sudo apt-get -y install libx264. libxvidcore. libfreetype6-dev libass-dev
+
 ./configure \
---prefix=/usr/local \
+--prefix="/usr/local" \
 --enable-libxvid \
 --enable-libx264 \
 --enable-libv4l2 \
@@ -18,10 +20,9 @@ pushd $(readlink -m $SCRIPT_DIR/../external/ffmpeg) &> /dev/null
 --disable-podpages \
 --disable-txtpages
 
-# --enable-libopenh264
 # --enable-libopencv
 
-make -j$(nproc)
+sudo make -j$(nproc)
 sudo make install
 sudo ldconfig
 

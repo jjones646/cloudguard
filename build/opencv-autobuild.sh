@@ -17,7 +17,7 @@ else
     echo "--  No OpenCV Contrib modules found at $OPENCV_CONTRIB_PATH"
 fi
 
-sudo apt-get install gstreamer1.0. libgstreamer1.0.
+sudo apt-get -y install gstreamer1.0. libgstreamer1.0.
 
 build_base="build"
 build_dir=$build_base
@@ -33,7 +33,7 @@ cmake \
 -DCMAKE_INSTALL_PREFIX=/usr/local \
 -DWITH_V4L=ON \
 -DWITH_LIBV4L=ON \
--DWITH_FFMPEG=ON \
+-DWITH_FFMPEG=OFF \
 -DWITH_TBB=ON \
 -DWITH_OPENGL=OFF \
 -DWITH_CUDA=OFF \
@@ -51,7 +51,7 @@ cmake \
 # -DPYTHON_PACKAGES_PATH=/usr/local/lib/python2.7/site-packages \
 # -DPYTHON_NUMPY_INCLUDE_DIRS=/usr/local/lib/python2.7/dist-packages/numpy/core/include \
 
-make -j$(nproc)
+sudo make -j$(nproc)
 sudo make install
 sudo ldconfig
 
