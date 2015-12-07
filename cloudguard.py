@@ -323,6 +323,9 @@ if __name__ == '__main__':
                 draw_str(frame, (10, frame.shape[
                          0] - 10), "{}".format(ts), fontScale=config.window.font_size_timestamp, color=(120, 120, 255))
 
+                sys.stdout.write("\r{:>5.1f}fps%".format(1/frame_interval.value))
+                sys.stdout.flush()
+
                 if config.window.overlay_enabled:
                     # the number that we should display for how many threads are
                     # currently working
