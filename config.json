@@ -19,11 +19,11 @@
             },
             "font_size_timestamp": {
                 "__comment__": "The font size of the overlaid timestamp for each frame. Type Float.",
-                "value": 0.45
+                "value": 0.5
             },
             "font_size_stats": {
                 "__comment__": "The font size of the overlaid stastics for each frame. Type Float.",
-                "value": 0.3
+                "value": 0.4
             },
             "border_x": {
                 "__comment__": "The space between the frame's left edge and the start of text. Type Interger.",
@@ -47,7 +47,7 @@
             },
             "fps": {
                 "__comment__": "The frame per second that the camera is set to. Type Float.",
-                "value": 10
+                "value": 15
             },
             "rotation": {
                 "__comment__": "A rotation angle that is applied immediately after a frame is retrieved from the camera. Type Interger.",
@@ -67,11 +67,11 @@
             },
             "bg_sub_thresh": {
                 "__comment__": "The background subtraction threshold for detecting motion. Type Float.",
-                "value": 12
+                "value": 14
             },
             "bg_sub_hist": {
                 "__comment__": "The number of previous frames that the adaptive background subtraction model stores. Type Interger.",
-                "value": 350
+                "value": 275
             },
             "threading_enabled": {
                 "__comment__": "Enable/Disable the use of multiple threads. This helps to maintain processing the background subtraction while simultaneously uploading data. Type Boolean.",
@@ -111,7 +111,7 @@
             },
             "min_upload_delay": {
                 "__comment__": "When 'save_cloud_crops' is enabled, this sets a delay time for two consecuitive uploads. This is not a hard limit, but rather a recommendation that the program will account for. Type Float.",
-                "value": 1.5
+                "value": 1.25
             }
         }
     }
