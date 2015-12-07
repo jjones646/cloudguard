@@ -67,11 +67,15 @@
             },
             "bg_sub_thresh": {
                 "__comment__": "The background subtraction threshold for detecting motion. Type Float.",
-                "value": 12
+                "value": 14
             },
             "bg_sub_hist": {
                 "__comment__": "The number of previous frames that the adaptive background subtraction model stores. Type Interger.",
                 "value": 325
+            },
+            "learning_rate": {
+                "__comment__": "A parameter that controls the rate that the background subtraction model will adapt to changes. Type Float.",
+                "value": 0.001
             },
             "threading_enabled": {
                 "__comment__": "Enable/Disable the use of multiple threads. This helps to maintain processing the background subtraction while simultaneously uploading data. Type Boolean.",

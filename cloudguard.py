@@ -216,7 +216,7 @@ def process_motion_frame(q, f, tick, ts, mfa=False, rotateAng=False, width=False
         f = imutils.resize(f, width=width)
     # blur & bg sub
     try:
-        fgmask = fgbg.apply(cv2.GaussianBlur(f, gBlur, 0), learningRate=0.0001)
+        fgmask = fgbg.apply(cv2.GaussianBlur(f, gBlur, 0), learningRate=config.computing.learning_rate)
     except:
         print("-"*60)
         traceback.print_exc(file=sys.stdout)
