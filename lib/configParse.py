@@ -55,6 +55,7 @@ class ComputingConfig(object):
         self.face_detection_en = bool(data["face_detection_enabled"]["value"])
         self.body_detection_en = bool(data["body_detection_enabled"]["value"])
         self.last_motion_timeout = int(data["last_motion_timeout"]["value"])
+        self.learning_rate = float(data["learning_rate"]["value"])
         if "__comment__" in data:
             self.__comment__ = str(data["__comment__"])
 
