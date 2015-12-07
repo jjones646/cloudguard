@@ -62,6 +62,7 @@ if config.window.enabled:
 
     # create the window
     cv2.namedWindow(config.window.name, cv2.WINDOW_NORMAL)
+    cv2.namedWindow("Background Model", cv2.WINDOW_NORMAL)
 
     def update_processing_width(x):
         config.computing.width = x
