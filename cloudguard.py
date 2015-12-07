@@ -10,7 +10,9 @@ import os
 import sys
 import imutils
 import cv2
+import signal
 import traceback
+import time
 import numpy as np
 from datetime import datetime, timedelta
 from os.path import join, basename, dirname, abspath, realpath
@@ -32,10 +34,14 @@ configFn = join(join(sDir, "config.json"))
 vsDir = join(sDir, "vid-streams")
 
 config = SysConfig(configFn).configblock
-config.show()
 
-# this function will terminate the program if there's no camera to use
-check_video_devs()
+# this function returns true/falses for if
+# there is a camera. Don't continue until there
+# is one connected.
+while check_video_devs() is False:
+    print("No camera devices found.")
+    time.sleep(1)
+time.sleep(2)
 
 # 'Last Motion Timestamp'
 LMT = datetime.utcnow()
@@ -47,10 +53,13 @@ MFA = False
 cap = cv2.VideoCapture(-1)
 
 if not cap.isOpened():
-    print("Unable to connect with camera!")
+    print("Unable to read from camera!")
     os._exit(140)
 else:
     camProps.init_props(cap, config)
+
+# print out final configuration values
+config.show()
 
 # compute a contour threshold for indicating whether or not an actual
 # object was detected - computed from the frame width for simplicity
@@ -88,7 +97,7 @@ if config.window.enabled:
             'Motion Thresh.', config.window.name, int(config.computing.bg_sub_thresh))
 
     cv2.createTrackbar('Processing Width', config.window.name,
-                       200, config.camera.res[1], update_processing_width)
+                       100, config.camera.res[0], update_processing_width)
     cv2.setTrackbarPos(
         'Processing Width', config.window.name, config.computing.width)
 
@@ -146,6 +155,7 @@ def process_response(q):
     last_up = clock()
     # initialize our largest detected area to 0
     biggest_crop_area = 0
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
     while cap.isOpened():
         # receive the data
         data = q.get()
@@ -283,152 +293,157 @@ if __name__ == '__main__':
         "null" + vWfn[1])), fourcc=fcc, fps=config.camera.fps, frameSize=config.camera.res)
     vW = None
     while True:
-        while len(pending) > 0 and pending[0].ready():
-            try:
-                frame, fRects, fgmask, rects_sal, tick, ts = pending.popleft().get()
-            except:
-                print("-"*60)
-                traceback.print_exc(file=sys.stdout)
-                print("-"*60)
-                os._exit(5000)
+        try:
+            while len(pending) > 0 and pending[0].ready():
+                try:
+                    frame, fRects, fgmask, rects_sal, tick, ts = pending.popleft().get()
+                except:
+                    print("-"*60)
+                    traceback.print_exc(file=sys.stdout)
+                    print("-"*60)
+                    raise
 
-            latency.update(clock() - tick)
-            sz = frame.shape
-            # overlay the rectangles if motion was detected
-            if len(rects_sal) > 0 and config.window.overlay_enabled:
-                LMT = ts
-                roi = frame[0:sz[0], 0:sz[1]]
-                frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)
-                _, frameMask = cv2.threshold(
-                    frameMask, 10, 255, cv2.THRESH_BINARY)
-                frameBg = cv2.bitwise_and(
-                    roi, roi, mask=cv2.bitwise_not(frameMask))
-                frameMaskFg = cv2.bitwise_and(fRects, fRects, mask=frameMask)
-                frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
-                pipe_ready = True
+                latency.update(clock() - tick)
+                sz = frame.shape
+                # overlay the rectangles if motion was detected
+                if len(rects_sal) > 0 and config.window.overlay_enabled:
+                    LMT = ts
+                    roi = frame[0:sz[0], 0:sz[1]]
+                    frameMask = cv2.cvtColor(fRects, cv2.COLOR_BGR2GRAY)
+                    _, frameMask = cv2.threshold(
+                        frameMask, 10, 255, cv2.THRESH_BINARY)
+                    frameBg = cv2.bitwise_and(
+                        roi, roi, mask=cv2.bitwise_not(frameMask))
+                    frameMaskFg = cv2.bitwise_and(fRects, fRects, mask=frameMask)
+                    frame[0:sz[1], 0:sz[1]] = cv2.add(frameBg, frameMaskFg)
+                    pipe_ready = True
 
-            # overlay a timestamp
-            ts = ts.strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
-            draw_str(frame, (10, frame.shape[
-                     0] - 10), "{}".format(ts), fontScale=config.window.font_size_timestamp, color=(120, 120, 255))
+                # overlay a timestamp
+                ts = ts.strftime("%A %d %B %Y %I:%M:%S%p (UTC)")
+                draw_str(frame, (10, frame.shape[
+                         0] - 10), "{}".format(ts), fontScale=config.window.font_size_timestamp, color=(120, 120, 255))
 
-            if config.window.overlay_enabled:
-                # the number that we should display for how many threads are
-                # currently working
-                if config.computing.threading_en:
-                    threadDis = threadN
-                else:
-                    threadDis = 1
-
-                statStrings = ["threads: {:<d}".format(threadDis), "res: {1:>d}x{0:<d}".format(*fRects.shape), "latency: {:>6.1f}ms".format(
-                    latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
-                txtSz = cv2.getTextSize(
-                    statStrings[0], **config.window._font_params)
-                xOffset = config.window.border_x
-                yOffset = txtSz[0][1] + config.window.border_y
-                tStr = ""
-                j = 0
-                while True:
-                    if xOffset != config.window.border_x:
-                        statStrings[
-                            j] = config.const.overlay_delim + statStrings[j]
-                    txtSz = cv2.getTextSize(
-                        statStrings[j], **config.window._font_params)
-                    txtSz = txtSz[0]
-                    xOffset += txtSz[0]
-                    if xOffset > (sz[1] - config.window.border_x):
-                        draw_str(
-                            frame, (config.window.border_x, yOffset), tStr, **config.window._font_params)
-                        yOffset += txtSz[1] + config.window.spacing_y
-                        statStrings[j] = statStrings[j][
-                            len(config.const.overlay_delim):]
-                        tStr = ""
-                        xOffset = config.window.border_x
+                if config.window.overlay_enabled:
+                    # the number that we should display for how many threads are
+                    # currently working
+                    if config.computing.threading_en:
+                        threadDis = threadN
                     else:
-                        tStr += statStrings[j]
-                        j += 1
-                    if j > len(statStrings) - 1:
-                        break
+                        threadDis = 1
 
-                draw_str(frame, (config.window.border_x, yOffset),
-                         tStr, **config.window._font_params)
+                    statStrings = ["threads: {:<d}".format(threadDis), "res: {1:>d}x{0:<d}".format(*fRects.shape), "latency: {:>6.1f}ms".format(
+                        latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
+                    txtSz = cv2.getTextSize(
+                        statStrings[0], **config.window._font_params)
+                    xOffset = config.window.border_x
+                    yOffset = txtSz[0][1] + config.window.border_y
+                    tStr = ""
+                    j = 0
+                    while True:
+                        if xOffset != config.window.border_x:
+                            statStrings[
+                                j] = config.const.overlay_delim + statStrings[j]
+                        txtSz = cv2.getTextSize(
+                            statStrings[j], **config.window._font_params)
+                        txtSz = txtSz[0]
+                        xOffset += txtSz[0]
+                        if xOffset > (sz[1] - config.window.border_x):
+                            draw_str(
+                                frame, (config.window.border_x, yOffset), tStr, **config.window._font_params)
+                            yOffset += txtSz[1] + config.window.spacing_y
+                            statStrings[j] = statStrings[j][
+                                len(config.const.overlay_delim):]
+                            tStr = ""
+                            xOffset = config.window.border_x
+                        else:
+                            tStr += statStrings[j]
+                            j += 1
+                        if j > len(statStrings) - 1:
+                            break
 
-            # update the window if it's enabled
+                    draw_str(frame, (config.window.border_x, yOffset),
+                             tStr, **config.window._font_params)
+
+                # update the window if it's enabled
+                if config.window.enabled:
+                    cv2.imshow(config.window.name, frame)
+
+                # write out the frame if our streaming destination object exists
+                if vW is not None:
+                    vW.write(frame)
+
+            if (config.computing.threading_en and len(pending) < threadN) or (not config.computing.threading_en and len(pending) == 0):
+                # read a new frame
+                grabbed, f = cap.read()
+                if not grabbed:
+                    break
+                t = clock()
+                frame_interval.update(t - last_frame_time)
+                last_frame_time = t
+                ts = datetime.utcnow()
+                task = pool.apply_async(process_motion_frame, args=(
+                    q, f, t, ts, MFA, config.camera.rot, config.computing.width))
+                pending.append(task)
+
+            # save a local video stream of detection motion if enabled
+            if config.storage.save_local_vids:
+                # motion has just begun, generate a new filename and write the
+                # first frame
+                if (datetime.utcnow() - LMT) < timedelta(seconds=config.computing.last_motion_timeout):
+                    if MFA is False:
+                        MFA = True
+                        streamId += 1
+                        vwParams["filename"] = join(
+                            vsDir, str(vWfn[0] + "_{:04d}_".format(streamId) + date_pretty() + vWfn[1]))
+                        vW = cv2.VideoWriter(**vwParams)
+                # no activity
+                else:
+                    if MFA is True:
+                        MFA = False
+                        vW = None
+
             if config.window.enabled:
-                cv2.imshow(config.window.name, frame)
+                # update the slider values to the background model and
+                # bind tasks to keystrokes if the window is enabled
 
-            # write out the frame if our streaming destination object exists
-            if vW is not None:
-                vW.write(frame)
+                # only with opencv3
+                if imutils.is_cv3():
+                    # refresh the background subtraction parameters
+                    bgSh = cv2.getTrackbarPos('Motion Hist.', config.window.name)
+                    bgSt = cv2.getTrackbarPos('Motion Thresh.', config.window.name)
+                    fgbg.setHistory(bgSh)
+                    fgbg.setVarThreshold(bgSt)
+                    if pipe_ready:
+                        cv2.imshow("Background Model", fgmask)
+                else:
+                    if pipe_ready:
+                        cv2.imshow("Background Model", fgmask)
 
-        if (config.computing.threading_en and len(pending) < threadN) or (not config.computing.threading_en and len(pending) == 0):
-            # read a new frame
-            grabbed, f = cap.read()
-            if not grabbed:
-                break
-            t = clock()
-            frame_interval.update(t - last_frame_time)
-            last_frame_time = t
-            ts = datetime.utcnow()
-            task = pool.apply_async(process_motion_frame, args=(
-                q, f, t, ts, MFA, config.camera.rot, config.computing.width))
-            pending.append(task)
+                ch = cv2.waitKey(1)
 
-        # save a local video stream of detection motion if enabled
-        if config.storage.save_local_vids:
-            # motion has just begun, generate a new filename and write the
-            # first frame
-            if (datetime.utcnow() - LMT) < timedelta(seconds=config.computing.last_motion_timeout):
-                if MFA is False:
-                    MFA = True
-                    streamId += 1
-                    vwParams["filename"] = join(
-                        vsDir, str(vWfn[0] + "_{:04d}_".format(streamId) + date_pretty() + vWfn[1]))
-                    vW = cv2.VideoWriter(**vwParams)
-            # no activity
-            else:
-                if MFA is True:
-                    MFA = False
-                    vW = None
+                # space
+                if (ch & 0xff) == ord(' '):
+                    config.computing.threading_en = not config.computing.threading_en
+                # left arrow key
+                if ch == 65361:
+                    config.camera.rot -= 90
+                    config.camera.rot %= 360
+                    saveConfig()
+                    # right arrow key
+                if ch == 65363:
+                    config.camera.rot += 90
+                    config.camera.rot %= 360
+                    saveConfig()
+                    # escape
+                if (ch & 0xff) == 27:
+                    break
+        except:
+            p.terminate()
+            p.join()
+            # cleanup
+            cap.release()
+            cv2.destroyAllWindows()
+            # exit
+            break
 
-        if config.window.enabled:
-            # update the slider values to the background model and
-            # bind tasks to keystrokes if the window is enabled
-
-            # only with opencv3
-            if imutils.is_cv3():
-                # refresh the background subtraction parameters
-                bgSh = cv2.getTrackbarPos('Motion Hist.', config.window.name)
-                bgSt = cv2.getTrackbarPos('Motion Thresh.', config.window.name)
-                fgbg.setHistory(bgSh)
-                fgbg.setVarThreshold(bgSt)
-                if pipe_ready:
-                    cv2.imshow("Background Model", fgmask)
-            else:
-                if pipe_ready:
-                    cv2.imshow("Background Model", fgmask)
-
-            ch = cv2.waitKey(1)
-
-            # space
-            if (ch & 0xff) == ord(' '):
-                config.computing.threading_en = not config.computing.threading_en
-            # left arrow key
-            if ch == 65361:
-                config.camera.rot -= 90
-                config.camera.rot %= 360
-                # saveConfig()
-                # right arrow key
-            if ch == 65363:
-                config.camera.rot += 90
-                config.camera.rot %= 360
-                # saveConfig()
-                # escape
-            if (ch & 0xff) == 27:
-                break
-
-    # cleanup
-    cap.release()
-    cv2.destroyAllWindows()
-    # p.terminate()
 sys.exit(0)

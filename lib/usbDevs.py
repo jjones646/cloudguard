@@ -9,14 +9,14 @@
 # Python 2/3 compatibility
 from __future__ import print_function
 
-import os
+# import os
 import usb.core
 import usb.util
 
 
 def check_video_devs():
     '''
-    Find out how many cameras are connected.
+    Find out is a camera is connected.
     '''
     try:
         devs = [usb.core.find(bDeviceClass=0x0e), usb.core.find(
@@ -24,8 +24,7 @@ def check_video_devs():
         devs = [x for x in devs if x is not None]
         dev_s = ""
         if len(devs) == 0:
-            print("No USB video devices found!")
-            os._exit(130)
+            return False
         elif len(devs) > 1:
             dev_s = "s"
         print(
@@ -33,5 +32,7 @@ def check_video_devs():
         for d in devs:
             print(
                 "--  USB device found at {:04X}:{:04X}".format(d.idVendor, d.idProduct))
+            return True
     except:
-        pass
+        raise
+    return False
