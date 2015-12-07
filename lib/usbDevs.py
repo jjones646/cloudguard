@@ -14,7 +14,7 @@ import usb.core
 import usb.util
 
 
-def num_video_devs():
+def check_video_devs():
     '''
     Find out how many cameras are connected.
     '''

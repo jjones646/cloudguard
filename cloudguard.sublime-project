@@ -21,13 +21,13 @@
             "pep8": true,
             "naming": true,
             "complexity": -1,
-            "pep8_max_line_length": 110,
+            "pep8_max_line_length": 115,
             "select": [],
-            "ignore": ["E123", "E226", "E24"],
+            "ignore": ["E123", "E226", "E24", "N803", "E501"],
             "ignore_files": []
         },
         "sublimeautopep8": {
-            "max-line-length": 110,
+            "max-line-length": 115,
             "format_on_save": false,
             "show_output_panel": true,
             // show Format/Preview menu items only for views

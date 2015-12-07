@@ -6,11 +6,11 @@
 # Python 2/3 compatibility
 from __future__ import print_function
 
-import sys
-import imutils
+# import sys
+# import imutils
 import cv2
 import numpy as np
-from os.path import *
+from os.path import join, dirname, realpath, abspath
 
 cascade_fn = [abspath(join(dirname(realpath(__file__)), "haarcascades/haarcascade_upperbody.xml")),
               abspath(join(dirname(realpath(__file__)), "haarcascades/haarcascade_frontalface_alt.xml"))]

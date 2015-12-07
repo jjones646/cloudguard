@@ -114,7 +114,7 @@ def decode_fourcc(v):
     return "".join([chr((v >> 8 * i) & 0xFF) for i in range(4)])
 
 
-def grabFnDate(utc=False):
+def date_pretty(utc=False):
     if utc is True:
         ts = datetime.utcnow()
     else:

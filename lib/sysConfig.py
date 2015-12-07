@@ -7,7 +7,9 @@
 # Python 2/3 compatibility
 from __future__ import print_function
 
+import sys
 import os.path
+import traceback
 import json
 from configParse import json2config
 
@@ -29,6 +31,9 @@ class SysConfig(object):
                     json.dump(self.fn, f)
             except:
                 print("Error saving config values!")
+                print("-"*60)
+                traceback.print_exc(file=sys.stdout)
+                print("-"*60)
                 os._exit(50)
 
     def load(self):
@@ -41,10 +46,16 @@ class SysConfig(object):
             return cfg
         except IOError as e:
             print(e)
+            print("-"*60)
+            traceback.print_exc(file=sys.stdout)
+            print("-"*60)
             os._exit(101)
         except Exception as e:
             print("Error parsing json config file!")
             print(e)
+            # print("-"*60)
+            # traceback.print_exc(file=sys.stdout)
+            # print("-"*60)
             os._exit(102)
 
     def show(self):
