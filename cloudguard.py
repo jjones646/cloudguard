@@ -428,12 +428,12 @@ if __name__ == '__main__':
                 if ch == 65361:
                     config.camera.rot -= 90
                     config.camera.rot %= 360
-                    saveConfig()
+                    config.save()
                     # right arrow key
                 if ch == 65363:
                     config.camera.rot += 90
                     config.camera.rot %= 360
-                    saveConfig()
+                    config.save()
                     # escape
                 if (ch & 0xff) == 27:
                     break
