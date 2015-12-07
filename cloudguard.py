@@ -322,7 +322,7 @@ if __name__ == '__main__':
                 statStrings = ["threads: {:<d}".format(threadDis), "res: {1:>d}x{0:<d}".format(*fRects.shape), "latency: {:>6.1f}ms".format(
                     latency.value * 1000), "period: {:>6.1f}ms".format(frame_interval.value * 1000), "fps: {:>5.1f}fps".format(1 / frame_interval.value)]
                 txtSz = cv2.getTextSize(
-                    statStrings[0], **config.window.font_params)
+                    statStrings[0], **config.window.__font_params)
                 xOffset = config.window.border_x
                 yOffset = txtSz[0][1] + config.window.border_y
                 tStr = ""
@@ -332,12 +332,12 @@ if __name__ == '__main__':
                         statStrings[
                             j] = config.const.overlay_delim + statStrings[j]
                     txtSz = cv2.getTextSize(
-                        statStrings[j], **config.window.font_params)
+                        statStrings[j], **config.window.__font_params)
                     txtSz = txtSz[0]
                     xOffset += txtSz[0]
                     if xOffset > (sz[1] - config.window.border_x):
                         draw_str(
-                            frame, (config.window.border_x, yOffset), tStr, **config.window.font_params)
+                            frame, (config.window.border_x, yOffset), tStr, **config.window.__font_params)
                         yOffset += txtSz[1] + config.window.spacing_y
                         statStrings[j] = statStrings[j][
                             len(config.const.overlay_delim):]
@@ -350,7 +350,7 @@ if __name__ == '__main__':
                         break
 
                 draw_str(frame, (config.window.border_x, yOffset),
-                         tStr, **config.window.font_params)
+                         tStr, **config.window.__font_params)
 
             # update the window if it's enabled
             if config.window.enabled:
