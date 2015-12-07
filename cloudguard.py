@@ -62,7 +62,7 @@ if config.window.enabled:
 
     # create the window
     cv2.namedWindow(config.window.name, cv2.WINDOW_NORMAL)
-    cv2.namedWindow("Background Model", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("Background Model", cv2.CV_WINDOW_AUTOSIZE)
 
     def update_processing_width(x):
         config.computing.width = x
@@ -255,7 +255,7 @@ def process_motion_frame(q, f, tick, ts, mfa=False, rotateAng=False, width=False
         q.put({"f": f_copy, "ts": ts, "rects_sal": rects_sal, "sz_scaled": getsize(
             f), "num_motion": num_motion, "num_bodies": num_bodies, "num_faces": num_faces})
 
-    return f_copy, f_rects, rects_sal, tick, ts
+    return f_copy, f_rects, fgmask, rects_sal, tick, ts
 
 
 if __name__ == '__main__':
@@ -272,6 +272,7 @@ if __name__ == '__main__':
     latency = StatValue()
     frame_interval = StatValue()
     last_frame_time = clock()
+    fgmask = []
     streamId = 0
     pipe_ready = False
     vWfn = ["vidStream", ".avi"]
@@ -285,7 +286,7 @@ if __name__ == '__main__':
     while True:
         while len(pending) > 0 and pending[0].ready():
             try:
-                frame, fRects, rects_sal, tick, ts = pending.popleft().get()
+                frame, fRects, fgmask, rects_sal, tick, ts = pending.popleft().get()
             except:
                 print("-"*60)
                 traceback.print_exc(file=sys.stdout)
@@ -403,10 +404,10 @@ if __name__ == '__main__':
                 fgbg.setHistory(bgSh)
                 fgbg.setVarThreshold(bgSt)
                 if pipe_ready:
-                    cv2.imshow("Background Model", fgbg.getBackgroundImage())
+                    cv2.imshow("Background Model", fgmask)
             else:
                 if pipe_ready:
-                    cv2.imshow("Background Model", fgbg.getMat())
+                    cv2.imshow("Background Model", fgmask)
 
             ch = cv2.waitKey(1)
 
