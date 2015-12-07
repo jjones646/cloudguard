@@ -28,7 +28,7 @@ class WindowConfig(object):
         self.border_x = int(data["border_x"]["value"])
         self.border_y = int(data["border_y"]["value"])
         self.spacing_y = int(data["spacing_y"]["value"])
-        self.__font_params = dict(
+        self._font_params = dict(
             fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=self.font_size_stats, thickness=1)
         if "__comment__" in data:
             self.__comment__ = str(data["__comment__"])
