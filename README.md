@@ -54,8 +54,15 @@ The easiest way to check what a connected camera is pointing at is to set the `w
 
 ## Running
 
-To run the program, simply run the [`cloudguard.py`](./cloudguard.py) python file.
+To run the program, simply run the [`cloudguard.py`](./cloudguard.py) python file. The [`requirements.txt`](./requirements.txt) file contains python packages that may need to be installed for the program to run correctly. While all of the packages there may not be required, the file was generated from an Odroid that could successfully run the program without errors.
 
 ```
+sudo pip install -r requirements.txt
+
 python cloudguard.py
 ```
+
+
+## Examples
+
+Some examples showing different experements can be found in the [`img`](./img) directory. 
