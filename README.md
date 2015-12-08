@@ -32,10 +32,6 @@ Once the step above has finished downloading everything, you can then proceed to
 ./build/install-all.sh
 ```
 
-### Start at Boot
-
-If you'd like to have the CloudGuard program launch at startup of the device, an executable script will have to be added at `/etc/init.d/cloudguard`.
-
 ### Remotely Connecting
 
 Since it's impractical to have a monitor always connected to the device, most find it easier to connect via `ssh` from another computer. When doing this, make you to specify the `-X` flag for forwarding back any windows from the program.
@@ -48,8 +44,18 @@ ssh -X odroid@<ip-address>
 
 Well...kinda. If all of the above steps worked for you, then you no longer have to find that old keyboard and mouse in the bottom of your closet everytime you want to see the activity of the CloudGuard.
 
+
 ## Configure
 
 The [`config.json`](./config.json) file can be modified for fine-tuning the camera to your exact environment. This is also where you can set limits on when and how often images will be delivered to an off-site server.
 
-The easiest way to check what a connected camera is pointing at is to set the `window->enabled` value to `true`. This will open a window showing the camera's view at startup of the program. 
+The easiest way to check what a connected camera is pointing at is to set the `window->enabled` value to `true`. This will open a window showing the camera's view at startup of the program.
+
+
+## Running
+
+To run the program, simply run the [`cloudguard.py`](./cloudguard.py) python file.
+
+```
+python cloudguard.py
+```
