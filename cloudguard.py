@@ -191,7 +191,7 @@ def process_response(q):
                             join(sDir, "cropped-regions"), date_pretty())
                         fn = root_path + "_regions.jpg"
                         res, img = cv2.imencode(
-                            ".jpg", f_mask, [int(cv2.IMWRITE_JPEG_QUALITY), config.storage.quality])
+                            ".jpg", f_mask, [int(cv2.IMWRITE_JPEG_QUALITY), config.storage.encoding_quality])
                         if res and config.storage.save_local_crops:
                             print("saving frame locally: {}".format(root_path))
                             # todo: save locally

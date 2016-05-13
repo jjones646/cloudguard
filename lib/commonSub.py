@@ -10,7 +10,7 @@ import sys
 PY3 = sys.version_info[0] == 3
 
 import cv2
-import datetime
+from datetime import datetime
 import numpy as np
 import imutils
 

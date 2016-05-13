@@ -11,7 +11,7 @@
             },
             "enabled": {
                 "__comment__": "Enable/Disable the displayed window. Type Boolean.",
-                "value": true
+                "value": false
             },
             "overlay_enabled": {
                 "__comment__": "Enable/Disable timing specs to be overlaid on each frame. Type Boolean.",
@@ -63,7 +63,7 @@
             "__comment__": "These settings control how much processing is executed for each frame. The balance between quality and speed is tweaked using everything here.",
             "width": {
                 "__comment__": "The width that each frame is downsampled to before any processing is done. Interger Type.",
-                "value": 240
+                "value": 640
             },
             "bg_sub_thresh": {
                 "__comment__": "The background subtraction threshold for detecting motion. Type Float.",
@@ -83,11 +83,11 @@
             },
             "face_detection_enabled": {
                 "__comment__": "Enable/Disable face detection using Cascade Classifiers after motion is detected. Type Boolean.",
-                "value": false
+                "value": true
             },
             "body_detection_enabled": {
                 "__comment__": "Enable/Disable body detection using HOG Descriptors after motion is detected. Type Boolean.",
-                "value": false
+                "value": true
             },
             "last_motion_timeout": {
                 "__comment__": "After an initial detection, the program performs deeper analysis for every frame. This sets the timeout value (seconds) for when it should go back into an idle state. Type Interger.",
@@ -99,7 +99,7 @@
             "__comment__": "These settings adjust when and how often data is saved. This includes data saved locally, and data sent to an off-site server.",
             "save_cloud_crops": {
                 "__comment__": "Enable/Disable uploading detected regions of a frame to an off-site server. Type Boolean.",
-                "value": false
+                "value": true
             },
             "save_local_crops": {
                 "__comment__": "Enable/Disable storing detected regions of a frame on local storage. Type Boolean.",
@@ -115,7 +115,7 @@
             },
             "min_upload_delay": {
                 "__comment__": "When 'save_cloud_crops' is enabled, this sets a delay time for two consecuitive uploads. This is not a hard limit, but rather a recommendation that the program will account for. Type Float.",
-                "value": 1.25
+                "value": 1.5
             }
         }
     }
