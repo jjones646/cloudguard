@@ -16,7 +16,7 @@ SQLAlchemy==0.9.8
 WTForms==2.0.2
 WebOb==1.5.1
 WebTest==2.0.20
-Werkzeug==0.10.4
+Werkzeug==0.15.3
 alembic==0.8.3
 argparse==1.2.1
 beautifulsoup4==4.4.1
