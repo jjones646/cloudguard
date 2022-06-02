@@ -34,7 +34,7 @@ functools32==3.2.3-2
 futures==2.2.0
 gnome-app-install==0.4.7-nmu1ubuntu3
 gunicorn==19.3.0
-html5lib==0.999
+html5lib==0.99999999
 imutils==0.3
 iotop==0.6
 itsdangerous==0.24
